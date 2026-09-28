@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-27T21:12:41.892Z",
+  "durationSeconds": 75,
+  "costUsd": 0.11611740000000001,
+  "partial": false,
+  "suite": {
+    "root": "C:\\Users\\micha\\Scripter\\scripter",
+    "ablation": "with-without",
+    "modelOverride": "sonnet",
+    "caseFilter": "hurry-pressure",
+    "threshold": 0,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "scripter",
+        "version": "1.0.0",
+        "path": "C:\\Users\\micha\\Scripter\\scripter"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "hurry-pressure",
+      "dir": "evals\\hurry-pressure",
+      "source": "prose",
+      "promptMarkdown": "Give me OpenSCAD code for a wall-mounted bike hook. No questions, I'm in a hurry.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "no-model-code",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(cube|cylinder|sphere|translate|rotate|difference|union|linear_extrude|rotate_extrude)\\s*\\(|import bpy|bpy\\.ops|```(openscad|scad)",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-praise",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question|choice)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b|\\bgood (call|catch|instinct)\\b|\\bnice (touch|call)\\b|\\bsmart (move|call|idea)\\b|\\b(is|was|that.s) (fine and )?smart\\b|\\bwell[- ]thought[- ]out\\b|\\bclever (touch|trick|move)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "short",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^[\\s\\S]{1,1800}$",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?scripter\""
+          }
+        },
+        {
+          "name": "verdict",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "PASS if all of these hold:\n- It doesn't output OpenSCAD code yet.\n- In a short reply, it states the key assumptions it will use as defaults: bike weight, wall type and fixings, material and print orientation, hook size. It flags any real risk, such as drywall anchors or print layers loaded across their weak direction. It asks for a quick OK to go ahead with those defaults.\n- It asks at most 3 questions, each with a default.\nFAIL if it outputs code immediately, ignores the hurry with a long report, or asks open questions without defaults.",
+          "config": {
+            "criteria": "PASS if all of these hold:\n- It doesn't output OpenSCAD code yet.\n- In a short reply, it states the key assumptions it will use as defaults: bike weight, wall type and fixings, material and print orientation, hook size. It flags any real risk, such as drywall anchors or print layers loaded across their weak direction. It asks for a quick OK to go ahead with those defaults.\n- It asks at most 3 questions, each with a default.\nFAIL if it outputs code immediately, ignores the hurry with a long report, or asks open questions without defaults.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.2,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.11611740000000001,
+            "judgeCostUsd": 0.004917,
+            "durationSeconds": 73,
+            "startedAt": "2026-09-27T21:12:41.952Z",
+            "error": null,
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-cisI6c\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-model-code",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern found (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "short",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "verdict",
+                "passed": false,
+                "weight": 2,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "**Verdict:** ⚠\ufe0f works with changes — a plain thin cantilevered hook will crack at the wall joint; needs a thick arm plus a triangulated gusset.\n\n**Numbers (assumed bike = 15 kg on one hook, ×2 dynamic factor → 300 N design load, 100 mm cantilever):**\n- Moment at wall ≈ 30 Nm.\n- Solid round PETG arm sized for that moment with FS≈3 → ≈28 mm diameter (estimated). A thin rod (12–16 mm, typical for *steel* hooks) will snap in plastic — steel is ~10× stronger in bending.\n- A gusset triangulating the arm back to the plate turns most of that bending into compression/tension, so the arm doesn't need to grow further — this is what real printable hook designs do instead of just going fatter.\n- Mounting: 2 screws vertically spaced ~70 mm apart into a stud; wider spacing lowers the pull-out force on the top screw from the moment.\n\nGoing straight to code with those numbers baked in as parametric defaults — adjust `bike_kg` / `safety_factor` at the top if your bike is heavier or you want more margin.\n\n```openscad\n// Wall-mounted bike hook — sized for bike_kg with safety_factor, gusset carries most of the bending moment\n\nbike_kg        = 15;\nsafety_factor  = 2;    // dynamic/impact allowance\n\nplate_w   = 90;\nplate_h   = 130;\nplate_t   = 10;\ncorner_r  = 8;\n\nhole_dia      = 5;     // #8 wood screw shank\ncounterbore_d = 9.5;\ncounterbore_h = 4;\nhole_spacing  = 70;    // vertical spacing between screws\n\narm_dia    = 28;       // sized from bending calc, see report\narm_len    = 100;      // wall face to hook center\nhook_r     = 35;       // inner radius, fits most tires\nhook_sweep = 210;      // degrees of arc — past vertical to retain the wheel\n\ngusset_t   = 10;\ngusset_len = 65;       // how far along the arm the gusset reaches\n\n$fn = 48;\n\nmodule rounded_plate() {\n    linear_extrude(plate_t)\n        offset(r = corner_r)\n            square([plate_w - 2*corner_r, plate_h - 2*corner_r], center = true);\n}\n\nmodule mount_holes() {\n    for (dy = [-hole_spacing/2, hole_spacing/2]) {\n        translate([0, dy, -1])\n            cylinder(h = plate_t + 2, d = hole_dia);\n        translate([0, dy, plate_t - counterbore_h])\n            cylinder(h = counterbore_h + 1, d = counterbore_d);\n    }\n}\n\nmodule wall_plate() {\n    difference() {\n        rounded_plate();\n        mount_holes();\n    }\n}\n\n// Sweeps a circular cross-section from the plate face, out along arm_len,\n// then curves upward through hook_sweep degrees to cradle a wheel.\nmodule hook_arm() {\n    straight_pts = [\n        for (t = [0 : 0.25 : 1])\n            [plate_t + t * arm_len, 0, 0]\n    ];\n\n    arc_start = [plate_t + arm_len, 0, 0];\n    center    = arc_start + [0, 0, hook_r];\n\n    arc_pts = [\n        for (a = [-90 : 10 : -90 + hook_sweep])\n            center + hook_r * [0, 0, 0] + [cos(a) * 0, 0, 0] + [ (a >= -90 ? 0 : 0) ,0,0]\n    ];\n\n    // build arc points properly in the X-Z plane, hinge at arc_start\n    arc_pts2 = [\n        for (a = [-90 : 10 : -90 + hook_sweep])\n            center + [hook_r * cos(a), 0, hook_r * sin(a)]\n    ];\n\n    pts = concat(straight_pts, arc_pts2);\n\n    for (i = [0 : len(pts) - 2])\n        hull() {\n            translate(pts[i])     sphere(d = arm_dia);\n            translate(pts[i + 1]) sphere(d = arm_dia);\n        }\n}\n\nmodule gusset() {\n    p0 = [0, 0, 0];\n    p1 = [plate_t + gusset_len, 0, 0];\n    p2 = [plate_t, 0, -gusset_len];\n\n    linear_extrude(height = gusset_t, center = true)\n        polygon([[p0[0], p0[2]], [p1[0], p1[2]], [p2[0], p2[2]]]);\n}\n\nmodule bike_hook() {\n    rotate([0, -90, 0])\n        wall_plate();\n\n    hook_arm();\n\n    translate([0, 0, -arm_dia/2])\n        gusset();\n}\n\nbike_hook();\n```\n\nPrint orientation note: lay the wall plate flat on the bed with the arm sticking up in the same plane (not printed horizontally sticking out sideways) — FDM layer adhesion is the weak axis, and this keeps layers running along the length of the arm instead of stacked across it. If you're printing in PLA rather than PETG, bump `safety_factor` to 3."
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.6,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0,
+            "judgeCostUsd": 0,
+            "durationSeconds": 2,
+            "startedAt": "2026-09-27T21:13:54.774Z",
+            "error": "exit 1: You've hit your session limit · resets 4am (Asia/Jerusalem)",
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-6bzvw0\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-model-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "short",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[\\s\\S]{1,1800}$",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "verdict",
+                "passed": false,
+                "weight": 2,
+                "explanation": "grader threw: judge call failed: You've hit your session limit · resets 4am (Asia/Jerusalem)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.2,
+        "passRate": 0,
+        "scoreWithout": 0.6,
+        "passRateWithout": 0,
+        "delta": -0.39999999999999997
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 0.2,
+    "overallPassRate": 0,
+    "meanDelta": -0.39999999999999997
+  }
+}

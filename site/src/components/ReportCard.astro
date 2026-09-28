@@ -1,0 +1,188 @@
+---
+// A Scripter report for the example in SKILL.md (the solar drone), laid out as a review sheet.
+// Budget bars share one scale: 0 to 200 W.
+const scaleMax = 200;
+const available = 20;
+const needed = { low: 150, high: 200 };
+const pct = (w: number) => `${(w / scaleMax) * 100}%`;
+---
+
+<figure class="sheet" aria-labelledby="sheet-caption">
+	<div class="head">
+		<span class="sc-label">Prompt</span>
+		<p class="prompt">"A drone with a solar panel on top so it charges while flying and never has to land."</p>
+	</div>
+
+	<div class="row">
+		<span class="sc-label">Verdict</span>
+		<p class="verdict"><span class="chip" aria-hidden="true">❌</span> <strong>Won't work as designed.</strong> A panel that fits on the drone makes about a tenth of the power it needs to hover.</p>
+	</div>
+
+	<div class="row">
+		<span class="sc-label">Numbers</span>
+		<div class="budget" role="img" aria-label={`Power budget: about ${available} watts available against ${needed.low} to ${needed.high} watts needed.`}>
+			<div class="bar-row">
+				<span class="bar-name">Available</span>
+				<span class="track">
+					<span class="bar have" style={`width:${pct(available)}`} title={`≈ ${available} W: 0.1 m² panel × 1000 W/m² × 20%`}></span>
+				</span>
+				<span class="bar-value">≈ {available} W</span>
+			</div>
+			<div class="bar-row">
+				<span class="bar-name">Needed</span>
+				<span class="track">
+					<span class="bar need" style={`width:${pct(needed.low)}`} title={`${needed.low}–${needed.high} W to hover at 1 kg`}></span>
+					<span class="bar need-range" style={`left:${pct(needed.low)};width:${pct(needed.high - needed.low)}`} title={`${needed.low}–${needed.high} W to hover at 1 kg`}></span>
+				</span>
+				<span class="bar-value">{needed.low}–{needed.high} W</span>
+			</div>
+			<p class="gap">About 10× short, before the extra panel weight is counted.</p>
+		</div>
+	</div>
+
+	<div class="row">
+		<span class="sc-label">Better option</span>
+		<p>Perch and charge: land on a high point, recharge, fly again. Or a fixed-wing solar glider, which needs several times less power per kg.</p>
+	</div>
+
+	<div class="row next">
+		<span class="sc-label">Next</span>
+		<p>Waits for your OK on the verdict and assumptions, then sizes the panel, battery and duty cycle.</p>
+	</div>
+
+	<figcaption id="sheet-caption" class="sc-label caption">Sample report · the example from the skill</figcaption>
+</figure>
+
+<style>
+	.sheet {
+		margin: 0;
+		background: var(--sc-sheet);
+		border: 1px solid var(--sc-sheet-edge);
+		border-radius: 0.75rem;
+		box-shadow:
+			0 1px 0 var(--sc-sheet-edge),
+			0 24px 48px -24px hsla(222, 40%, 10%, 0.35);
+		font-size: var(--sl-text-sm);
+		line-height: 1.5;
+		overflow: hidden;
+	}
+
+	.head,
+	.row {
+		display: grid;
+		grid-template-columns: 6.5rem 1fr;
+		gap: 0.25rem 1rem;
+		padding: 0.85rem 1.1rem;
+		border-bottom: 1px dashed var(--sc-sheet-edge);
+	}
+
+	.head {
+		background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+	}
+
+	.sc-label {
+		padding-top: 0.15rem;
+	}
+
+	p {
+		margin: 0;
+		color: var(--sl-color-gray-2);
+	}
+
+	.prompt {
+		font-style: italic;
+		color: var(--sl-color-white);
+	}
+
+	.verdict strong {
+		color: var(--sl-color-white);
+	}
+
+	.chip {
+		font-style: normal;
+	}
+
+	.budget {
+		display: grid;
+		gap: 0.45rem;
+	}
+
+	.bar-row {
+		display: grid;
+		grid-template-columns: 4.6rem 1fr 5.4rem;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
+	.bar-name,
+	.bar-value {
+		font-family: var(--__sl-font-mono);
+		font-size: var(--sl-text-xs);
+		color: var(--sl-color-gray-2);
+	}
+
+	.bar-value {
+		font-variant-numeric: tabular-nums;
+		color: var(--sl-color-white);
+	}
+
+	.track {
+		position: relative;
+		height: 0.7rem;
+		border-left: 2px solid var(--sl-color-gray-4);
+	}
+
+	.bar {
+		position: absolute;
+		inset-block: 0;
+		left: 0;
+		border-radius: 0 4px 4px 0;
+	}
+
+	.have {
+		background: var(--sl-color-accent);
+	}
+
+	.need {
+		background: var(--sl-color-gray-3);
+		border-radius: 0;
+	}
+
+	.need-range {
+		background: repeating-linear-gradient(
+			45deg,
+			var(--sl-color-gray-3) 0 2px,
+			transparent 2px 5px
+		);
+		border: 1px solid var(--sl-color-gray-3);
+		border-left: 2px solid var(--sc-sheet);
+		border-radius: 0 4px 4px 0;
+	}
+
+	.gap {
+		font-size: var(--sl-text-xs);
+		color: var(--sl-color-gray-3);
+	}
+
+	.next {
+		border-bottom: 0;
+	}
+
+	.caption {
+		padding: 0.6rem 1.1rem;
+		border-top: 1px solid var(--sc-sheet-edge);
+		font-weight: 400;
+		letter-spacing: 0.04em;
+		text-transform: none;
+	}
+
+	@media (max-width: 30rem) {
+		.head,
+		.row {
+			grid-template-columns: 1fr;
+		}
+		.bar-row {
+			grid-template-columns: 4.2rem 1fr 4.8rem;
+		}
+	}
+</style>

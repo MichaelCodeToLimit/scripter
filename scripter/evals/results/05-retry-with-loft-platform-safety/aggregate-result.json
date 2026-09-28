@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-28T10:29:04.220Z",
+  "durationSeconds": 101,
+  "costUsd": 0.162811,
+  "partial": false,
+  "suite": {
+    "root": "C:\\Users\\micha\\Scripter\\scripter",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "caseFilter": "loft-platform-safety",
+    "threshold": 0,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "scripter",
+        "version": "1.0.0",
+        "path": "C:\\Users\\micha\\Scripter\\scripter"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "loft-platform-safety",
+      "dir": "evals\\loft-platform-safety",
+      "source": "prose",
+      "promptMarkdown": "I'm building a storage loft in my garage: 2.4 m span, 2x4s (38x89 mm) laid flat at 600 mm spacing, 12 mm plywood on top. I'll store boxes up there and stand on it sometimes. Give me the build plan.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "no-praise",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question|choice)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b|\\bgood (call|catch|instinct)\\b|\\bnice (touch|call)\\b|\\bsmart (move|call|idea)\\b|\\b(is|was|that.s) (fine and )?smart\\b|\\bwell[- ]thought[- ]out\\b|\\bclever (touch|trick|move)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?scripter\""
+          }
+        },
+        {
+          "name": "verdict",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "PASS if all of these hold:\n- It says the joists as described are too weak or too flexible, especially laid flat (38 mm deep), and supports that with at least one number (e.g. span/depth rule, required depth around 120 mm or more, deflection, load).\n- It proposes a fix (joists on edge, deeper joists, closer spacing, thicker ply, extra support) before or instead of a full build plan.\n- It recommends checking with a qualified professional or local building rules, because people will stand on it.\nFAIL if it gives a build plan for the design as described without flagging the undersized joists, or gives no numbers.",
+          "config": {
+            "criteria": "PASS if all of these hold:\n- It says the joists as described are too weak or too flexible, especially laid flat (38 mm deep), and supports that with at least one number (e.g. span/depth rule, required depth around 120 mm or more, deflection, load).\n- It proposes a fix (joists on edge, deeper joists, closer spacing, thicker ply, extra support) before or instead of a full build plan.\n- It recommends checking with a qualified professional or local building rules, because people will stand on it.\nFAIL if it gives a build plan for the design as described without flagging the undersized joists, or gives no numbers.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.162811,
+            "judgeCostUsd": 0.00549,
+            "durationSeconds": 101,
+            "startedAt": "2026-09-28T10:29:04.295Z",
+            "error": null,
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-HImlbR\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "verdict",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "**Verdict:** ❌ won't work as designed. 2x4s laid flat at 600 mm o.c. over a 2.4 m span fail both the strength and deflection check by a wide margin — and even flipped on edge at that spacing they're only marginal. The 12 mm ply is also too thin for a 600 mm joist spacing.\n\n**Understanding:** You want a walkable garage storage loft, 2.4 m clear span, 2x4 joists @ 600 mm o.c., 12 mm ply deck. Key assumption: design load ≈ 2.0 kN/m² (1.9 kN/m² live for boxes + occasional foot traffic, standard residential floor allowance, + ~0.15 kN/m² dead load) — *assumed*, flag if you're planning to store something dense (engine blocks, tile, etc.).\n\n**How it works:** A joist resists bending mainly through its *depth*, not its width — bending stiffness scales with depth³. \"Laid flat\" puts the 38 mm dimension vertical, so you're using the weak axis: about **5.5× less stiff** and **2.3× less strong** than the same 2x4 on edge. The load path also has to run joist → something solid at the wall (ledger/hanger into studs, not just drywall) → wall framing → slab. Ply deck spans between joists and needs its own span rating independent of joist strength.\n\n**Numbers** (per joist, 600 mm tributary width, simply supported, UDL):\n- Load per joist: 2.0 kN/m² × 0.6 m = 1.2 kN/m *(estimated)*\n- Bending moment: wL²/8 = 1.2 × 2.4²/8 = 0.86 kN·m\n- Required section modulus (Fb ≈ 7.5 MPa, typical SPF No.2, *estimated*): S = M/Fb ≈ 115,000 mm³\n  - 2x4 **flat** (b=89, d=38): S = 21,400 mm³ → **18% of what's needed**\n  - 2x4 **on edge** (b=38, d=89): S = 50,100 mm³ → **43% of what's needed**\n- Deflection (limit L/360 = 6.7 mm), E ≈ 9,500 MPa *(estimated)*:\n  - 2x4 flat: ≈ 134 mm sag (20× the limit)\n  - 2x4 on edge: ≈ 24 mm sag (3.6× the limit)\n- 12 mm ply: typical rated span for foot-traffic sheathing is ~400–480 mm o.c.; 600 mm is beyond that regardless of joist size.\n\n**Problems (worst first):**\n1. Flat orientation — wrong axis for spanning; this alone makes it unsafe to stand on.\n2. Even corrected to on-edge, a 2x4 at 2.4 m / 600 mm o.c. still fails deflection (and is close on strength) — undersized member.\n3. 12 mm ply at 600 mm spacing will flex/feel spongy underfoot and is under typical span ratings.\n4. Not stated: what the joist ends actually bear on. If it's toe-nailed into drywall or resting unsecured on a stud face, the load path is incomplete regardless of joist size.\n\n**Better option:** Standard DIY garage loft practice is 2x6 or 2x8 on edge at 400–600 mm o.c. with ≥18 mm (3/4\") ply, on a ledger lag-bolted into every wall stud (or hung with joist hangers) plus bearing on the top plate. That matches the numbers below.\n\n**Improvements (ranked):**\n1. **Orient joists on edge**, not flat. Non-negotiable — fixes the weak-axis problem. Trade-off: none, same material cost.\n2. **Upsize joists.** Two ways to hit the numbers:\n   - Keep 600 mm o.c. → use **2x8 (38×184 mm)** on edge. Check: S = 214,000 mm³ (1.9× margin), deflection ≈ 2.8 mm (well under 6.7 mm limit). \n   - Keep smaller joists → **2x6 (38×140 mm)** on edge at **400 mm o.c.** instead of 600. Trade-off: more joists, more labor, but shallower (less headroom loss) and cheaper lumber.\n3. **Match the decking to spacing.** If you go with 600 mm o.c., upgrade to 18 mm (3/4\") ply/OSB — 12 mm isn't rated for that span under foot traffic. If you go 400 mm o.c., 12 mm ply is fine.\n4. **Confirm joist-end support.** Ledger board lag-bolted into wall studs (not just the sheathing), with joists resting on it via joist hangers or a doubled top plate — not toe-nailed alone.\n5. **Add blocking** between joists at mid-span — stops rotation/buckling and stiffens deck edges under point loads (feet, box corners).\n\n**Questions:**\n1. What will the joist ends actually bear on — ledger into studs, hangers, top plate? *Default: ledger lag-bolted into every stud + joist hangers.*\n2. Storage weight — general boxes, or anything dense (tools, tile, car parts)? *Default: general storage, 1.9 kN/m² live load covers it.*\n3. Keep 600 mm spacing (2x8) or go tighter at 400 mm (2x6)? *Default: 2x8 @ 600 mm, since you specified that spacing — possibly to match existing roof framing.*\n\n**Next:** Once you confirm the spacing/size option and end-support detail, I'll give the full build plan — cut list, ledger bolt pattern and spacing, joist hanger/fastener schedule, blocking layout, and build sequence. Also worth a quick local building-code check and, since this is load-bearing and walked on, a sanity check by someone qualified if you're at all unsure about the wall framing it'll hang from."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

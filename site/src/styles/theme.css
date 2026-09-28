@@ -1,0 +1,85 @@
+/* Scripter theme: blueprint accent, IBM Plex, paper and ink surfaces. */
+
+:root {
+	--sl-font: 'IBM Plex Sans Variable', 'IBM Plex Sans';
+	--sl-font-mono: 'IBM Plex Mono';
+
+	/* Dark (Starlight's default scale) */
+	--sl-color-accent-low: hsl(226, 45%, 19%);
+	--sl-color-accent: hsl(226, 100%, 70%);
+	--sl-color-accent-high: hsl(226, 100%, 88%);
+	--sl-color-black: hsl(222, 24%, 8%);
+	--sl-color-gray-6: hsl(222, 20%, 12%);
+
+	/* Verdicts: status colors, always shown with an icon and a label */
+	--sc-works: #1f9d3a;
+	--sc-changes: #d99100;
+	--sc-fails: #e0524f;
+	--sc-unknown: #8a93a6;
+
+	--sc-grid: hsla(226, 100%, 75%, 0.07);
+	--sc-sheet: hsl(222, 22%, 11%);
+	--sc-sheet-edge: hsl(222, 14%, 24%);
+	--sc-mark: hsla(4, 90%, 62%, 0.18);
+	--sc-good-mark: hsla(140, 70%, 50%, 0.14);
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: hsl(226, 90%, 94%);
+	--sl-color-accent: hsl(226, 73%, 45%);
+	--sl-color-accent-high: hsl(226, 72%, 27%);
+	--sl-color-black: hsl(45, 30%, 98.5%);
+	--sl-color-gray-7: hsl(45, 22%, 96%);
+	--sl-color-gray-6: hsl(45, 16%, 93%);
+
+	--sc-works: #13802c;
+	--sc-changes: #9a6700;
+	--sc-fails: #c4302b;
+	--sc-unknown: #5d6678;
+
+	--sc-grid: hsla(226, 73%, 45%, 0.07);
+	--sc-sheet: #ffffff;
+	--sc-sheet-edge: hsl(45, 12%, 84%);
+	--sc-mark: hsla(4, 90%, 55%, 0.13);
+	--sc-good-mark: hsla(140, 70%, 38%, 0.12);
+}
+
+/* Mono labels used across the custom components */
+.sc-label {
+	font-family: var(--__sl-font-mono);
+	font-size: var(--sl-text-xs);
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--sl-color-gray-3);
+}
+
+/* Landing page sections */
+[data-has-hero] .sl-markdown-content {
+	--sc-section-gap: clamp(3.5rem, 8vw, 6rem);
+}
+
+[data-has-hero] .sl-markdown-content > h2 {
+	margin-top: var(--sc-section-gap);
+	font-size: clamp(var(--sl-text-2xl), 1.2rem + 1.6vw, var(--sl-text-4xl));
+	letter-spacing: -0.01em;
+}
+
+[data-has-hero] .sl-markdown-content > h2 + p {
+	color: var(--sl-color-gray-2);
+	font-size: var(--sl-text-lg);
+	max-width: 60ch;
+}
+
+.sl-markdown-content .sc-lead {
+	font-size: var(--sl-text-lg);
+	color: var(--sl-color-gray-2);
+}
+
+/* Download buttons on the install page */
+.sc-downloads {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	margin-block: 1.5rem;
+}

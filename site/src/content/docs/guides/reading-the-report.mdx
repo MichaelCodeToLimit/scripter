@@ -1,0 +1,57 @@
+---
+title: Reading the report
+description: What each verdict means and what every section of a Scripter report is for.
+---
+
+import VerdictScale from '../../../components/VerdictScale.astro';
+
+A new design, a review or a build request gets a short report before anything is made. It always starts with the verdict.
+
+## The verdict
+
+<VerdictScale compact />
+
+The verdict follows from the numbers. Scripter is told never to decide it first and then argue for it.
+
+## The sections
+
+Sections always come in this order. Any that would be empty are dropped.
+
+| Section | What it tells you |
+|---|---|
+| **Verdict** | One of the four above, plus one line saying why. |
+| **Understanding** | 1–3 lines: the goal, and the key assumptions, each marked *assumed*. Check these first; a wrong assumption is the cheapest thing to fix. |
+| **How it works** | The working model: how this kind of thing works, in a few lines. |
+| **Numbers** | For each quantity that decides the outcome (power, force, heat, water, data, cost, time): what's available and what's needed, with units. Each figure is marked *known*, *estimated* or *assumed*. |
+| **Problems** | Numbered, worst first. |
+| **Better option** | Only when a better approach exists. If yours is better than the standard solution, it keeps yours and says why. |
+| **Improvements** | Ranked by impact. Each says what to change, why, and the trade-off. |
+| **Questions** | Only questions whose answer would change the design. Each has a default. |
+| **Next** | What it will build once you confirm. |
+
+## An example
+
+For the prompt *"A drone with a solar panel on top so it charges while flying and never has to land"*:
+
+```text
+**Verdict:** ❌ won't work as designed. A panel that fits on the drone makes about a tenth of the power it needs to hover.
+**How it works:** a multirotor holds itself up by pushing air down all the time; hover power rises with weight.
+**Numbers:** available ≈ 0.1 m² × 1000 W/m² × 20% ≈ 20 W at noon, clear sky (estimated) · needed ≈ 150–200 W to hover at 1 kg (estimated, typical quadcopter).
+**Problems (worst first):** 1. Power shortfall of about 10×. 2. A bigger panel adds weight and drag, which raises the power it needs.
+**Better option:** perch and charge. It lands on a high point, charges from the panel, then flies again. Or use a fixed-wing solar glider, which needs several times less power per kg.
+**Questions:** what's the mission, for example watching one area all day? Default: stationary surveillance.
+**Next:** once you pick a direction, I'll size the panel, the battery and the duty cycle.
+```
+
+## How to read the numbers
+
+- **"Needed" means the hardest point of the cycle, including losses.** Friction, drag, leakage and efficiency count. The energy to *reach* a speed is not the power to *hold* it there. This is the most common way a design looks feasible on paper and fails in use.
+- **Totals are over the whole cycle.** For example, litres per wash or kWh per day, not just the first step.
+- **Figures are compared with real products.** If an estimate comes out 10× lower than what existing products use, Scripter is told to find out why before trusting it.
+- **The figures are rough.** They're for deciding whether an idea is worth pursuing, not for final engineering.
+
+## Replying
+
+- **"OK"** confirms the verdict and the assumptions, and it builds what's under **Next**.
+- **Change an assumption** ("it's for a 2 kg drone", "I have a laser cutter") and it re-checks before building.
+- **Disagree** and it re-checks from first principles. See [When you disagree](/scripter/guides/pushing-back/).

@@ -1,0 +1,103 @@
+---
+// Replaces Starlight's hero on the landing page: copy and actions on the left,
+// a sample Scripter report on the right, over a faint drafting grid.
+import { LinkButton } from '@astrojs/starlight/components';
+import ReportCard from './ReportCard.astro';
+
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline, actions = [] } = data.hero || {};
+---
+
+<div class="sc-hero">
+	<div class="copy">
+		<p class="sc-label eyebrow">A skill for Claude and ChatGPT</p>
+		<h1 id="_top" data-page-title set:html={title} />
+		{tagline && <p class="tagline" set:html={tagline} />}
+		{
+			actions.length > 0 && (
+				<div class="actions">
+					{actions.map(({ attrs: { class: className, ...attrs } = {}, icon, link: href, text, variant }) => (
+						<LinkButton {href} {variant} icon={icon?.name} class:list={[className]} {...attrs}>
+							{text}
+						</LinkButton>
+					))}
+				</div>
+			)
+		}
+		<p class="platforms">Works in Claude Code, claude.ai and ChatGPT.</p>
+	</div>
+	<ReportCard />
+</div>
+
+<style>
+	.sc-hero {
+		position: relative;
+		display: grid;
+		gap: 2.5rem;
+		align-items: center;
+		padding-block: 1.5rem 2.5rem;
+	}
+
+	.sc-hero::before {
+		content: '';
+		position: absolute;
+		inset: -2rem -1rem;
+		z-index: -1;
+		background-image: linear-gradient(var(--sc-grid) 1px, transparent 1px),
+			linear-gradient(90deg, var(--sc-grid) 1px, transparent 1px);
+		background-size: 24px 24px;
+		mask-image: radial-gradient(ellipse at 70% 45%, #000 30%, transparent 75%);
+		pointer-events: none;
+	}
+
+	.copy {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.eyebrow {
+		margin: 0;
+		color: var(--sl-color-text-accent);
+	}
+
+	h1 {
+		margin: 0;
+		font-size: clamp(2.25rem, 1.2rem + 4.2vw, 4.25rem);
+		line-height: 1.02;
+		font-weight: 650;
+		letter-spacing: -0.025em;
+		color: var(--sl-color-white);
+		text-wrap: balance;
+	}
+
+	.tagline {
+		margin: 0;
+		max-width: 44ch;
+		font-size: clamp(var(--sl-text-base), 0.9rem + 0.6vw, var(--sl-text-xl));
+		line-height: 1.5;
+		color: var(--sl-color-gray-2);
+	}
+
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem 1.5rem;
+		align-items: center;
+		margin-top: 0.25rem;
+	}
+
+	.platforms {
+		margin: 0;
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-3);
+	}
+
+	@media (min-width: 60rem) {
+		.sc-hero {
+			grid-template-columns: 1.05fr 1fr;
+			gap: 3.5rem;
+			padding-block: clamp(2.5rem, 1rem + 7vmin, 6rem);
+		}
+	}
+</style>

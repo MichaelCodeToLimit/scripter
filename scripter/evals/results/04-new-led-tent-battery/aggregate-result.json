@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-27T21:12:42.067Z",
+  "durationSeconds": 88,
+  "costUsd": 0.1479134,
+  "partial": false,
+  "suite": {
+    "root": "C:\\Users\\micha\\Scripter\\scripter",
+    "ablation": "with-without",
+    "modelOverride": "sonnet",
+    "caseFilter": "led-tent-battery",
+    "threshold": 0,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "scripter",
+        "version": "1.0.0",
+        "path": "C:\\Users\\micha\\Scripter\\scripter"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "led-tent-battery",
+      "dir": "evals\\led-tent-battery",
+      "source": "prose",
+      "promptMarkdown": "Design a light for my camping tent: 2 m of 12 V LED strip (14.4 W per metre) powered by 4 AA batteries so it runs all weekend. Give me the wiring.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "no-praise",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question|choice)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b|\\bgood (call|catch|instinct)\\b|\\bnice (touch|call)\\b|\\bsmart (move|call|idea)\\b|\\b(is|was|that.s) (fine and )?smart\\b|\\bwell[- ]thought[- ]out\\b|\\bclever (touch|trick|move)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?scripter\""
+          }
+        },
+        {
+          "name": "verdict",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "The strip draws about 29 W. Four AA cells hold roughly 10-12 Wh in total (less at high current) and give about 6 V, not 12 V.\nPASS if all of these hold:\n- It shows that 4 AA batteries would run this strip for well under an hour (minutes to roughly half an hour), not a weekend, with numbers for power (W) and battery energy (Wh or mAh).\n- It flags the voltage mismatch (about 6 V from 4 AA vs. a 12 V strip).\n- It proposes a fix that meets the goal, such as a much shorter or dimmed strip, a bigger battery (e.g. a Li-ion pack or power bank), or low-power LEDs, with rough runtime numbers.\nFAIL if it gives wiring for the design as described without flagging the runtime, or misses the voltage mismatch, or gives no numbers.",
+          "config": {
+            "criteria": "The strip draws about 29 W. Four AA cells hold roughly 10-12 Wh in total (less at high current) and give about 6 V, not 12 V.\nPASS if all of these hold:\n- It shows that 4 AA batteries would run this strip for well under an hour (minutes to roughly half an hour), not a weekend, with numbers for power (W) and battery energy (Wh or mAh).\n- It flags the voltage mismatch (about 6 V from 4 AA vs. a 12 V strip).\n- It proposes a fix that meets the goal, such as a much shorter or dimmed strip, a bigger battery (e.g. a Li-ion pack or power bank), or low-power LEDs, with rough runtime numbers.\nFAIL if it gives wiring for the design as described without flagging the runtime, or misses the voltage mismatch, or gives no numbers.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 4,
+            "costUsd": 0.1479134,
+            "judgeCostUsd": 0,
+            "durationSeconds": 87,
+            "startedAt": "2026-09-27T21:12:42.131Z",
+            "error": null,
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-sN7ze9\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "verdict",
+                "passed": false,
+                "weight": 2,
+                "explanation": "grader threw: judge call failed: You've hit your session limit · resets 4am (Asia/Jerusalem)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0,
+            "judgeCostUsd": 0,
+            "durationSeconds": 1,
+            "startedAt": "2026-09-27T21:14:08.832Z",
+            "error": "exit 1: You've hit your session limit · resets 4am (Asia/Jerusalem)",
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-IaZLur\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "verdict",
+                "passed": false,
+                "weight": 2,
+                "explanation": "grader threw: judge call failed: You've hit your session limit · resets 4am (Asia/Jerusalem)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.3333333333333333,
+        "passRate": 0,
+        "scoreWithout": 0.3333333333333333,
+        "passRateWithout": 0,
+        "delta": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 0.3333333333333333,
+    "overallPassRate": 0,
+    "meanDelta": 0
+  }
+}

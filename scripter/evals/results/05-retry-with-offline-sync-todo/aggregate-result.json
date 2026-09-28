@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-28T10:29:08.349Z",
+  "durationSeconds": 13,
+  "costUsd": 0.0470114,
+  "partial": false,
+  "suite": {
+    "root": "C:\\Users\\micha\\Scripter\\scripter",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "caseFilter": "offline-sync-todo",
+    "threshold": 0,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "scripter",
+        "version": "1.0.0",
+        "path": "C:\\Users\\micha\\Scripter\\scripter"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "offline-sync-todo",
+      "dir": "evals\\offline-sync-todo",
+      "source": "prose",
+      "promptMarkdown": "I want a to-do app that keeps my phone and laptop in sync, but with no server and no internet at all. How should it work?",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "no-praise",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question|choice)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b|\\bgood (call|catch|instinct)\\b|\\bnice (touch|call)\\b|\\bsmart (move|call|idea)\\b|\\b(is|was|that.s) (fine and )?smart\\b|\\bwell[- ]thought[- ]out\\b|\\bclever (touch|trick|move)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?scripter\""
+          }
+        },
+        {
+          "name": "verdict",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "PASS if all of these hold:\n- It says what is and is not possible: sync can only happen when the two devices can reach each other directly (same Wi-Fi/LAN, Bluetooth, cable or file transfer), not at any time from anywhere.\n- It addresses conflicting edits made while the devices were apart (e.g. merge rules, last-write-wins, CRDTs).\n- It recommends one specific approach and names at least one trade-off or platform limit (e.g. phone background restrictions, pairing, battery).\nFAIL if it implies seamless always-on sync with no connection, ignores conflicting edits, or lists options without recommending one.",
+          "config": {
+            "criteria": "PASS if all of these hold:\n- It says what is and is not possible: sync can only happen when the two devices can reach each other directly (same Wi-Fi/LAN, Bluetooth, cable or file transfer), not at any time from anywhere.\n- It addresses conflicting edits made while the devices were apart (e.g. merge rules, last-write-wins, CRDTs).\n- It recommends one specific approach and names at least one trade-off or platform limit (e.g. phone background restrictions, pairing, battery).\nFAIL if it implies seamless always-on sync with no connection, ignores conflicting edits, or lists options without recommending one.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.75,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.0470114,
+            "judgeCostUsd": 0.0014909999999999997,
+            "durationSeconds": 13,
+            "startedAt": "2026-09-28T10:29:08.418Z",
+            "error": null,
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-ZpXaRt\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "verdict",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The core idea: make it a **local-first app using a CRDT** (conflict-free replicated data type, e.g. via Automerge or Yjs) for the todo list, so each device keeps a full local copy and edits always succeed offline — then sync peer-to-peer whenever both devices are physically near each other, using Bluetooth LE or Wi-Fi Direct/multipeer connectivity (no LAN, no internet, no cloud relay required).\n\nThe main tradeoff: sync is opportunistic, not instant — updates only propagate when both devices are in range and the app is open on both, so if you edit on your laptop and don't open the phone app until you're near it again, that's when it catches up. If instead you want it to sync the moment you're on the same Wi-Fi (even without internet), that's simpler to implement (mDNS discovery + a tiny local socket sync) but won't work when devices aren't on the same network at all.\n\nWant me to sketch out an actual implementation (platform, storage format, sync transport)?"
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.75,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 0.75,
+    "overallPassRate": 0
+  }
+}

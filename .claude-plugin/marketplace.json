@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "scripter",
+  "description": "Plugins by Michael Davies.",
+  "owner": {
+    "name": "Michael Davies"
+  },
+  "plugins": [
+    {
+      "name": "scripter",
+      "source": "./scripter",
+      "description": "Makes Claude understand how a thing works and check that a design is possible, buildable and the best approach before building it. No praise; the saved effort goes into the design.",
+      "version": "1.0.0",
+      "category": "productivity"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+---
+const steps = [
+	{
+		title: 'Work out how it works',
+		body: 'Before judging your design, it builds a model of how this kind of thing works: the functions, the physics or logic, and one full cycle of use. It checks how existing products do it, and why.',
+	},
+	{
+		title: 'Check it with numbers',
+		body: 'Does it make sense, is it physically possible, can it be made, will it work? For the quantities that decide the outcome, it writes what is available and what is needed, with units.',
+	},
+	{
+		title: 'Ask if it is the best way',
+		body: 'It compares your approach with the standard solution and one or two alternatives. It keeps yours if yours is better, and ranks improvements by impact, each with its trade-off.',
+	},
+	{
+		title: 'Stop for your OK',
+		body: 'Before a 3D model, drawings, a full spec or code, it shows the report and waits. You confirm the verdict and the assumptions, then it builds, then it re-checks the result.',
+	},
+];
+---
+
+<ol class="steps not-content">
+	{
+		steps.map((step, i) => (
+			<li>
+				<span class="sc-label num">{String(i + 1).padStart(2, '0')}</span>
+				<h3>{step.title}</h3>
+				<p>{step.body}</p>
+			</li>
+		))
+	}
+</ol>
+
+<style>
+	.steps {
+		list-style: none;
+		padding: 0;
+		margin-top: 2rem;
+		display: grid;
+		gap: 1px;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+		background: var(--sl-color-hairline-light);
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 0.75rem;
+		overflow: hidden;
+	}
+
+	.steps li {
+		margin: 0;
+		padding: 1.4rem 1.25rem 1.5rem;
+		background: var(--sl-color-bg);
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+
+	.num {
+		color: var(--sl-color-text-accent);
+		font-size: var(--sl-text-sm);
+	}
+
+	h3 {
+		margin: 0;
+		font-size: var(--sl-text-lg);
+		color: var(--sl-color-white);
+	}
+
+	p {
+		margin: 0;
+		font-size: var(--sl-text-sm);
+		line-height: 1.6;
+		color: var(--sl-color-gray-2);
+	}
+</style>

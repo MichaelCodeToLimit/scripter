@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-27T21:10:36.684Z",
+  "durationSeconds": 8,
+  "costUsd": 0.0381784,
+  "partial": false,
+  "suite": {
+    "root": "C:\\Users\\micha\\Scripter\\scripter",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "caseFilter": "birthday-message",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "scripter",
+        "version": "1.0.0",
+        "path": "C:\\Users\\micha\\Scripter\\scripter"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "birthday-message",
+      "dir": "evals\\birthday-message",
+      "source": "prose",
+      "promptMarkdown": "Write a short birthday message for my mom.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 5,
+      "graders": [
+        {
+          "name": "message",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply contains a short, warm birthday message for the user's mother.\nFAIL if it contains no birthday message, or turns the request into an analysis, a list of questions, or a design review.",
+          "config": {
+            "criteria": "PASS if the reply contains a short, warm birthday message for the user's mother.\nFAIL if it contains no birthday message, or turns the request into an analysis, a list of questions, or a design review.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "skill-not-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?scripter\"",
+            "min": 0,
+            "max": 0,
+            "arm": "both"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0381784,
+            "judgeCostUsd": 0.0006900000000000001,
+            "durationSeconds": 8,
+            "startedAt": "2026-09-27T21:10:36.725Z",
+            "error": null,
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-EnbhOq\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "message",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Happy Birthday, Mom!\n\nThank you for everything you've done for me — for your endless love, patience, and support through every stage of my life. You've always known how to make things better with just a hug or a word of encouragement. I hope today is filled with as much joy and love as you've always given everyone around you. I love you so much!"
+              },
+              {
+                "name": "skill-not-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

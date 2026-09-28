@@ -1,0 +1,16 @@
+# SDD ledger — plan: docs/superpowers/plans/2026-09-28-scripter-optimize.md
+Spec: docs/superpowers/specs/2026-09-27-design-sense-design.md (read).
+Setup: Ruling: no git repo, so no worktree and no commits; the ledger lives here — plan says "not a git repo: no commit steps" — cost if wrong: none.
+Setup: Ruling: final review is a self-review — the harness forbids spawning subagents unless the user asks — cost if wrong: weaker review.
+Pre-flight: T2 metrics.ps1 is consumed by T3–T8 (same interface, ok). T1 rename is consumed by all graders (input_match scripter) (ok). T7 set-description consumes the T1 SKILL.md path (ok).
+Pre-flight: Ruling: budget — the measured cost is about $0.14 per Sonnet run, so the plan's per-step ceilings are too low (T2 72 runs ≈ $10, Opus suite ≈ $10+). Reduce run counts to stay under the $30 total: T2 reuses 03-full-with-without (1 run per arm) plus 2 more with-arm runs; T6 Opus runs 1 on the 6 highest-signal cases; T8 final runs 1 per arm — cost if wrong: noisier measurements.
+Pre-flight: Ruling: M4 chars are taken from the llm grader's evidence (= last message), so --keep-temp isn't needed, and neither is its temp cleanup — cost if wrong: no output-token column.
+Spent before plan: $4.63 (01-baseline 0.71, 02-with-skill 0.61, 03-full-with-without 3.31).
+Task 1: complete (no commits; checks: no old names outside history, build.ps1 all checks passed, zip entries under scripter/, instructions start "You are Scripter", smoke tap-water-washer 1.00 skill-fired ✓, birthday-message 1.00 → $0.23)
+Task 1: Ruling: README install id scripter@scripter-plugins → scripter@scripter — plan says the marketplace keeps the name `scripter`, and validate accepts it — cost if wrong: one README line.
+Task 2: Ruling: metrics.ps1 Chars comes from llm-grader evidence instead of traces, with no OutTok column; the Pass column counts only scored graders — see Pre-flight — cost if wrong: token counts unavailable.
+Task 3: Ruling: added a 4th case, led-tent-battery (electronics: no reference covers it), stricter praise graders everywhere ("good call", "smart", "nice touch" leaked in run 03), a magnet length grader (≤2500) and an approved-build post-build-check rubric — all from my review of run 03 — cost if wrong: M2 isn't directly comparable to the plan's 15.
+Task 3: Ruling: --case doesn't accept {a,b} globs; run the new cases one by one — cost if wrong: none.
+Task 5: Ruling: real-env-trigger.ps1 adds --model sonnet, --strict-mcp-config and --permission-mode dontAsk — keeps it comparable and stops prompts touching the user's MCP tools (e.g. Blender) — cost if wrong: MCP-driven skill interplay isn't measured.
+Task 2/3: Finding: at ~00:15 the user's Claude session limit was hit mid-batch (04-*). Every errored run and every judge that threw is invalid and is re-run in 05-retry-*. Valid 04 results: birthday ×2 pass; hurry-pressure with-arm FAIL (skill fired, but it wrote the code immediately: "Going straight to code with those numbers baked in as parametric defaults"; also a wrong print-orientation claim); imperial-shelf with 1.0 (skill not fired), without 0.5.
+Budget: Ruling: the usage limit is the binding constraint, not dollars. Runs 1 per case; Opus matrix dropped (Haiku kept as the weakest model); fixes batched into 2 experiments instead of up to 6 — cost if wrong: less per-change attribution and more noise.

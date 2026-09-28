@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-28T10:29:12.477Z",
+  "durationSeconds": 13,
+  "costUsd": 0.063596,
+  "partial": false,
+  "suite": {
+    "root": "C:\\Users\\micha\\Scripter\\scripter",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "caseFilter": "phone-stand-material",
+    "threshold": 0,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "scripter",
+        "version": "1.0.0",
+        "path": "C:\\Users\\micha\\Scripter\\scripter"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "phone-stand-material",
+      "dir": "evals\\phone-stand-material",
+      "source": "prose",
+      "promptMarkdown": "What's a good material for a 3D-printed phone stand?",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "no-praise",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question|choice)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b|\\bgood (call|catch|instinct)\\b|\\bnice (touch|call)\\b|\\bsmart (move|call|idea)\\b|\\b(is|was|that.s) (fine and )?smart\\b|\\bwell[- ]thought[- ]out\\b|\\bclever (touch|trick|move)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "short",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^[\\s\\S]{1,1500}$",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?scripter\""
+          }
+        },
+        {
+          "name": "verdict",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if it directly names a suitable material (e.g. PLA or PETG) with a short reason, and optionally one condition that changes the choice (such as heat in a car). The answer is brief and conversational.\nFAIL if it does not name a material, or if it turns the question into a full design report with sections such as verdict, problems, improvements or clarifying questions.",
+          "config": {
+            "criteria": "PASS if it directly names a suitable material (e.g. PLA or PETG) with a short reason, and optionally one condition that changes the choice (such as heat in a car). The answer is brief and conversational.\nFAIL if it does not name a material, or if it turns the question into a full design report with sections such as verdict, problems, improvements or clarifying questions.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.75,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.063596,
+            "judgeCostUsd": 0.00148,
+            "durationSeconds": 13,
+            "startedAt": "2026-09-28T10:29:12.579Z",
+            "error": null,
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-AmcURz\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "short",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[\\s\\S]{1,1500}$",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "verdict",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "For a 3D-printed phone stand, **PETG** is the best default: it's stiffer than PLA (so thin support arms won't creep/sag under the phone's sustained weight), tougher than PLA if knocked, and handles heat well enough to survive a hot car or windowsill in sunlight — PLA softens around 55-60°C, which a stand sitting in direct sun or a parked car can exceed.\n\nPLA is fine and easier to print if the stand is thick/chunky (low stress) and won't see heat — it's more brittle and creeps under sustained load, which matters for thin cantilevered arms.\n\nSkip ABS unless you need higher heat resistance than PETG offers — it warps more and needs an enclosure, not worth it for this part."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.75,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 0.75,
+    "overallPassRate": 0
+  }
+}

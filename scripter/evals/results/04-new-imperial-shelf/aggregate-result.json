@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-27T21:12:41.882Z",
+  "durationSeconds": 59,
+  "costUsd": 0.1204248,
+  "partial": false,
+  "suite": {
+    "root": "C:\\Users\\micha\\Scripter\\scripter",
+    "ablation": "with-without",
+    "modelOverride": "sonnet",
+    "caseFilter": "imperial-shelf",
+    "threshold": 0,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "scripter",
+        "version": "1.0.0",
+        "path": "C:\\Users\\micha\\Scripter\\scripter"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "imperial-shelf",
+      "dir": "evals\\imperial-shelf",
+      "source": "prose",
+      "promptMarkdown": "Will a 2x4 laid flat hold 300 lbs in the middle if it spans 10 ft between two supports?",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "no-praise",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question|choice)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b|\\bgood (call|catch|instinct)\\b|\\bnice (touch|call)\\b|\\bsmart (move|call|idea)\\b|\\b(is|was|that.s) (fine and )?smart\\b|\\bwell[- ]thought[- ]out\\b|\\bclever (touch|trick|move)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "short",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^[\\s\\S]{1,2000}$",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?scripter\""
+          }
+        },
+        {
+          "name": "verdict",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "PASS if all of these hold:\n- It says no: a 2x4 laid flat over 10 ft won't safely carry 300 lb at midspan. It would break or sag severely.\n- It backs this with at least one number in consistent units. For example: bending moment ≈ 9,000 lb·in (P·L/4); flat section modulus ≈ 1.3 in³; bending stress ≈ 6,900 psi, against an allowable of roughly 1,000–1,500 psi for common construction lumber. A very large deflection also counts.\n- It suggests a fix that actually works: a deeper board (2x8 or larger on edge), doubled or tripled deep boards, or a middle support. A single 2x4 turned on edge is NOT enough on its own (≈ 2,900 psi) and must not be presented as the fix.\nFAIL if it says the board will hold, gives no numbers, mixes units so a number is off by 10× or more, or presents \"turn it on edge\" as sufficient.",
+          "config": {
+            "criteria": "PASS if all of these hold:\n- It says no: a 2x4 laid flat over 10 ft won't safely carry 300 lb at midspan. It would break or sag severely.\n- It backs this with at least one number in consistent units. For example: bending moment ≈ 9,000 lb·in (P·L/4); flat section modulus ≈ 1.3 in³; bending stress ≈ 6,900 psi, against an allowable of roughly 1,000–1,500 psi for common construction lumber. A very large deflection also counts.\n- It suggests a fix that actually works: a deeper board (2x8 or larger on edge), doubled or tripled deep boards, or a middle support. A single 2x4 turned on edge is NOT enough on its own (≈ 2,900 psi) and must not be presented as the fix.\nFAIL if it says the board will hold, gives no numbers, mixes units so a number is off by 10× or more, or presents \"turn it on edge\" as sufficient.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.054233399999999994,
+            "judgeCostUsd": 0.002283,
+            "durationSeconds": 22,
+            "startedAt": "2026-09-27T21:12:41.949Z",
+            "error": null,
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-W30DYJ\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "short",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[\\s\\S]{1,2000}$",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "verdict",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No — laid flat, a 2x4 spanning 10 ft will break well before it holds 300 lbs in the middle.\n\n**Why:**\n\"Laid flat\" means the weak axis resists the load (1.5\" tall × 3.5\" wide, actual dressed dimensions). That orientation has a much smaller section modulus than standing it on edge.\n\n- Section modulus (flat): S = b·d²/6 = 3.5 × 1.5² / 6 ≈ 1.31 in³\n- Max bending moment for a center point load: M = P·L/4 = 300 lb × 120 in / 4 = 9,000 in-lb\n- Bending stress: f = M/S ≈ 9,000 / 1.31 ≈ **6,900 psi**\n\nTypical dimension lumber (SPF or Douglas fir, No.2 grade) has an allowable bending stress around 875–1,200 psi. You're loading it at roughly **6–8x its allowable stress**, so it will crack/snap, not just sag.\n\nFor comparison, standing it **on edge** (3.5\" deep) gives S ≈ 3.06 in³, stress ≈ 2,940 psi — still 2.5–3x over allowable, so even on edge a single 2x4 is not adequate for a 10 ft span with 300 lbs at midspan. You'd need a larger member (e.g., a doubled 2x6/2x8 on edge, or shorten the span) to do this safely."
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.0661914,
+            "judgeCostUsd": 0.006121,
+            "durationSeconds": 36,
+            "startedAt": "2026-09-27T21:13:04.370Z",
+            "error": null,
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-bQWXPI\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "short",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[\\s\\S]{1,2000}$",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "verdict",
+                "passed": false,
+                "weight": 2,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "No — not safely, and probably not even to failure with a margin of safety.\n\n**Setup:** 2x4 actual dimensions are 1.5\" x 3.5\". \"Laid flat\" means the 3.5\" face is horizontal, so the beam is only 1.5\" deep in the direction of bending — the weak orientation.\n\n**Bending check** (simply supported, 10 ft span, point load at center):\n- Section modulus S = b·d²/6 = 3.5 × 1.5² / 6 ≈ 1.31 in³\n- Max moment at 300 lb: M = PL/4 = 300 × 120\"/4 = 9,000 in-lb\n- Required bending stress = M/S ≈ 6,900 psi\n\nThat's higher than the *ultimate* bending strength of most dimension lumber (typical clear-wood ultimate is ~5,000–8,000 psi, and graded construction lumber with knots is usually well under that). Allowable *design* stress for framing lumber (#2 grade) is only ~875–1,250 psi, meaning a safe working load here is more like **30–50 lbs**, not 300.\n\n**Deflection check** confirms it: even before breaking, a 2x4 flat over a 10 ft span would sag several inches under a few dozen pounds — it'd feel like a trampoline long before failing.\n\n**Bottom line:** a 2x4 flatwise across a 10 ft span will bend/break dramatically under 300 lbs at midspan. If you stand it on edge instead (3.5\" depth), stiffness goes up ~5x and strength ~2.3x — still not enough for 300 lbs at 10 ft unsupported, but much closer. For 300 lbs at that span you really want a proper engineered beam (doubled/tripled 2x lumber, an LVL, or steel), or add a mid-span support."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.5,
+        "passRateWithout": 0,
+        "delta": 0.5
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1,
+    "meanDelta": 0.5
+  }
+}

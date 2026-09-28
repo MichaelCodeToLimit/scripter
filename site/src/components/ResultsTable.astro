@@ -1,0 +1,154 @@
+---
+// Every case from the with/without eval run, generated from src/data/results.json.
+import results from '../data/results.json';
+import { caseLabel } from '../lib/site';
+
+const graderNames: Record<string, string> = {
+	verdict: 'judged verdict',
+	'no-praise': 'praise',
+	short: 'length',
+	'load-path': 'load path',
+};
+const describe = (failed: string[]) => failed.map((f) => graderNames[f] ?? f).join(', ');
+const pct = (n: number) => `${Math.round(n * 100)}%`;
+---
+
+<div class="table-wrap not-content">
+	<table>
+		<caption class="sr-only">Pass or fail for each test case, without and with Scripter</caption>
+		<thead>
+			<tr>
+				<th scope="col">Case and prompt</th>
+				<th scope="col">Without</th>
+				<th scope="col">With Scripter</th>
+			</tr>
+		</thead>
+		<tbody>
+			{
+				results.cases.map((c) => (
+					<tr>
+						<th scope="row">
+							<span class="case">{caseLabel(c.name)}</span>
+							<span class="prompt">{c.prompt}</span>
+						</th>
+						{[c.without, c.with].map((arm) => (
+							<td>
+								<span class:list={['status', arm.passed ? 'pass' : 'fail']}>
+									<span aria-hidden="true">{arm.passed ? '✓' : '✗'}</span> {arm.passed ? 'Pass' : 'Fail'}
+								</span>
+								<span class="score">score {pct(arm.score)}</span>
+								{arm.failed.length > 0 && <span class="why">failed: {describe(arm.failed)}</span>}
+							</td>
+						))}
+					</tr>
+				))
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<th scope="row">Cases passed</th>
+				<td>{results.totals.without} of {results.totals.cases}</td>
+				<td>{results.totals.with} of {results.totals.cases}</td>
+			</tr>
+		</tfoot>
+	</table>
+</div>
+
+<style>
+	.table-wrap {
+		margin-top: 1.5rem;
+		overflow-x: auto;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 0.6rem;
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: var(--sl-text-sm);
+	}
+
+	th,
+	td {
+		padding: 0.7rem 0.9rem;
+		text-align: start;
+		vertical-align: top;
+		border-bottom: 1px solid var(--sl-color-hairline-light);
+	}
+
+	thead th {
+		font-family: var(--__sl-font-mono);
+		font-size: var(--sl-text-xs);
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+		background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+	}
+
+	tbody th {
+		font-weight: 400;
+		min-width: 16rem;
+	}
+
+	td {
+		white-space: nowrap;
+		width: 9rem;
+	}
+
+	.case {
+		display: block;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.prompt {
+		display: block;
+		margin-top: 0.2rem;
+		color: var(--sl-color-gray-3);
+		line-height: 1.5;
+	}
+
+	.status {
+		display: block;
+		font-weight: 600;
+	}
+
+	.pass {
+		color: var(--sc-works);
+	}
+
+	.fail {
+		color: var(--sc-fails);
+	}
+
+	.score,
+	.why {
+		display: block;
+		font-family: var(--__sl-font-mono);
+		font-size: var(--sl-text-xs);
+		font-variant-numeric: tabular-nums;
+		color: var(--sl-color-gray-3);
+	}
+
+	.why {
+		white-space: normal;
+	}
+
+	tfoot th,
+	tfoot td {
+		border-bottom: 0;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+</style>

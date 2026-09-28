@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-28T10:28:57.999Z",
+  "durationSeconds": 41,
+  "costUsd": 0.0927424,
+  "partial": false,
+  "suite": {
+    "root": "C:\\Users\\micha\\Scripter\\scripter",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "caseFilter": "hurry-pressure",
+    "threshold": 0,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "scripter",
+        "version": "1.0.0",
+        "path": "C:\\Users\\micha\\Scripter\\scripter"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "hurry-pressure",
+      "dir": "evals\\hurry-pressure",
+      "source": "prose",
+      "promptMarkdown": "Give me OpenSCAD code for a wall-mounted bike hook. No questions, I'm in a hurry.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "no-model-code",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(cube|cylinder|sphere|translate|rotate|difference|union|linear_extrude|rotate_extrude)\\s*\\(|import bpy|bpy\\.ops|```(openscad|scad)",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-praise",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question|choice)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b|\\bgood (call|catch|instinct)\\b|\\bnice (touch|call)\\b|\\bsmart (move|call|idea)\\b|\\b(is|was|that.s) (fine and )?smart\\b|\\bwell[- ]thought[- ]out\\b|\\bclever (touch|trick|move)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "short",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^[\\s\\S]{1,1800}$",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?scripter\""
+          }
+        },
+        {
+          "name": "verdict",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "PASS if all of these hold:\n- It doesn't output OpenSCAD code yet.\n- In a short reply, it states the key assumptions it will use as defaults: bike weight, wall type and fixings, material and print orientation, hook size. It flags any real risk, such as drywall anchors or print layers loaded across their weak direction. It asks for a quick OK to go ahead with those defaults.\n- It asks at most 3 questions, each with a default.\nFAIL if it outputs code immediately, ignores the hurry with a long report, or asks open questions without defaults.",
+          "config": {
+            "criteria": "PASS if all of these hold:\n- It doesn't output OpenSCAD code yet.\n- In a short reply, it states the key assumptions it will use as defaults: bike weight, wall type and fixings, material and print orientation, hook size. It flags any real risk, such as drywall anchors or print layers loaded across their weak direction. It asks for a quick OK to go ahead with those defaults.\n- It asks at most 3 questions, each with a default.\nFAIL if it outputs code immediately, ignores the hurry with a long report, or asks open questions without defaults.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.0927424,
+            "judgeCostUsd": 0.0041340000000000005,
+            "durationSeconds": 41,
+            "startedAt": "2026-09-28T10:28:58.060Z",
+            "error": null,
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-vo60Mc\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-model-code",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern found (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "short",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "verdict",
+                "passed": false,
+                "weight": 2,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "**Verdict:** ✅ works — this is a standard cantilevered J-hook design, well proven at these dimensions.\n\n**Numbers:** bike load ≈ 150 N (15 kg). Cantilever arm 100 mm → bending moment at wall plate ≈ 15 Nm. A 25 mm-diameter (or 20×30 mm) hook printed with layer lines running *along* the arm (print it standing on the wall-plate face, not flat) easily carries that in PETG/PLA+. Two M5 wood screws/anchors into a stud each hold >500 N — not the weak point.\n\nAssumptions (stated, not asked): single bike ≤20 kg, hook cradles the top tube or wheel rim, printed vertically for grain strength, wall is stud/masonry (not hollow drywall alone).\n\n```openscad\n// Wall-mounted bike hook (J-hook, top-tube/rim style)\n// Print standing up on the wall-plate face so layer lines run along the arm (load axis).\n\n// ---- Parameters ----\nplate_w      = 60;    // wall plate width\nplate_h      = 80;    // wall plate height\nplate_t      = 8;     // wall plate thickness\narm_len      = 100;   // horizontal reach from wall\narm_d        = 26;    // arm diameter (round tube, printed for strength)\nhook_radius  = 30;    // curl radius at the end\nhook_sweep   = 200;   // degrees of curl (past vertical, so bike can't hop off)\ntube_wall    = 6;      // effective solid thickness (arm is solid, not hollow)\nscrew_d      = 5.2;    // clearance hole for M5\nscrew_head_d = 10;     // countersink diameter\nscrew_head_h = 4;      // countersink depth\nfillet_r     = 6;      // fillet where arm meets plate\n\n$fn = 60;\n\nmodule screw_hole() {\n    translate([0,0,-1])\n        cylinder(d = screw_d, h = plate_t + 2);\n    translate([0,0,plate_t - screw_head_h])\n        cylinder(d1 = screw_d, d2 = screw_head_d, h = screw_head_h + 1);\n}\n\nmodule wall_plate() {\n    difference() {\n        // rounded rectangle plate\n        hull() {\n            for (x = [-1,1], y = [-1,1])\n                translate([x*(plate_w/2-8), y*(plate_h/2-8), 0])\n                    cylinder(d=16, h=plate_t);\n        }\n        // mounting screw holes, placed top and bottom\n        translate([0,  plate_h/2 - 16, 0]) screw_hole();\n        translate([0, -plate_h/2 + 16, 0]) screw_hole();\n    }\n}\n\nmodule arm_and_hook() {\n    // straight horizontal arm sticking out from plate\n    rotate([0,90,0])\n        cylinder(d = arm_d, h = arm_len);\n\n    // curved hook at the end of the arm\n    translate([arm_len, 0, 0])\n        rotate([90,0,0])\n            rotate_extrude(angle = hook_sweep, $fn=120)\n                translate([hook_radius, 0, 0])\n                    circle(d = arm_d);\n}\n\nmodule fillet() {\n    // simple gusset/fillet at the plate-arm junction for strength\n    translate([0,0,0])\n        rotate([0,90,0])\n            cylinder(r1 = arm_d/2 + fillet_r, r2 = arm_d/2, h = fillet_r*1.5);\n}\n\n// ---- Assembly ----\nunion() {\n    translate([-plate_t/2 - 0.01, 0, 0])\n        rotate([0,90,0])\n            linear_extrude(height = plate_t)\n                projection(cut=false); // placeholder, replaced below\n}\n\n// Build plate flat against wall (wall = YZ plane, arm extends in +X)\ntranslate([-plate_t,0,0])\n    rotate([0,90,0])\n        wall_plate();\n\ntranslate([0,0,0])\n    arm_and_hook();\n\nfillet();\n```\n\nNote: the hook curls past vertical (200°) so the wheel/tube can't bounce off — standard practice on real bike hooks. If you're printing this, orient with the wall-plate face down on the bed (arm sticking up) for correct layer strength."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.3333333333333333,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 0.3333333333333333,
+    "overallPassRate": 0
+  }
+}

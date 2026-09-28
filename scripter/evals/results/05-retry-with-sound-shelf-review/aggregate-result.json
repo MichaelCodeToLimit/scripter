@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-28T10:29:16.433Z",
+  "durationSeconds": 212,
+  "costUsd": 0.2550042,
+  "partial": false,
+  "suite": {
+    "root": "C:\\Users\\micha\\Scripter\\scripter",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "caseFilter": "sound-shelf-review",
+    "threshold": 0,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "scripter",
+        "version": "1.0.0",
+        "path": "C:\\Users\\micha\\Scripter\\scripter"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "sound-shelf-review",
+      "dir": "evals\\sound-shelf-review",
+      "source": "prose",
+      "promptMarkdown": "Review my design: a wall shelf for paperback books. 18 mm birch plywood board, 60 cm long and 25 cm deep, on two 20 cm steel L-brackets 40 cm apart, each bracket screwed into a wall stud with two 5x60 mm wood screws.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "no-praise",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question|choice)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b|\\bgood (call|catch|instinct)\\b|\\bnice (touch|call)\\b|\\bsmart (move|call|idea)\\b|\\b(is|was|that.s) (fine and )?smart\\b|\\bwell[- ]thought[- ]out\\b|\\bclever (touch|trick|move)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "short",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^[\\s\\S]{1,2500}$",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?scripter\""
+          }
+        },
+        {
+          "name": "verdict",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "The design is sound for paperback books.\nPASS if it gives a positive verdict (works, or works with only minor optional tweaks), does not invent serious problems, and keeps the review proportionate (short, with at most a few minor suggestions).\nFAIL if it claims the shelf will fail or needs major redesign, or pads the review with many speculative problems.",
+          "config": {
+            "criteria": "The design is sound for paperback books.\nPASS if it gives a positive verdict (works, or works with only minor optional tweaks), does not invent serious problems, and keeps the review proportionate (short, with at most a few minor suggestions).\nFAIL if it claims the shelf will fail or needs major redesign, or pads the review with many speculative problems.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.4,
+            "passed": false,
+            "turns": 4,
+            "costUsd": 0.2550042,
+            "judgeCostUsd": 0.005793,
+            "durationSeconds": 212,
+            "startedAt": "2026-09-28T10:29:16.498Z",
+            "error": null,
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-XyALDM\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "short",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "verdict",
+                "passed": false,
+                "weight": 2,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "**Verdict:** ⚠\ufe0f Works with changes — the plywood board is over-built for its span, but the bracket-to-wall screw connection is the real governing check, with thin margin, and one detail (whether the board is actually fastened down to the brackets) isn't specified and matters a lot.\n\n**Understanding:** Goal is a fixed wall shelf for paperbacks, 60×25 cm, 18 mm birch ply, two 20 cm L-brackets 40 cm apart, each on 2× 5×60 mm screws into a stud. Assumed: fully packed load, standard timber-stud wall with ~12.5 mm drywall, screws driven straight into the stud behind it.\n\n**How it works:** The board sits on two point supports with a 10 cm overhang each side (a beam-with-overhangs, not a cantilever). Vertical load splits ~evenly between the two brackets regardless of overhang length. Each bracket then acts as its own small cantilever off the wall: the load, offset 12–20 cm from the wall, creates a moment that the two screws must resist as a couple — top screw in tension (pull-out), bottom screw in compression bearing. That screw-tension check, not the plywood, is what actually limits this design.\n\n**Numbers:**\n- Shelf self-weight: ~1.8 kg (known, from ply density ≈680 kg/m³)\n- Fully-packed paperback load, 60×25 cm, ~2 rows deep: ~20–30 kg (estimated)\n- Reaction per bracket: ~15 kg / 150 N (known, statics)\n- Plywood bending stress at 40 cm span: ~0.56 MPa vs ~15 MPa allowable → **27× margin** (span is well inside the ~70–80 cm rule of thumb for 18 mm shelving)\n- Midspan deflection: ~0.1 mm — imperceptible\n- Moment at each bracket's wall fixing: ~19–30 N·m, depending on how far forward the load sits on the 25 cm depth (estimated)\n- Resulting tension on the top screw: ~150–250 N (estimated, assumes ~12 cm vertical spacing between the two screws on the bracket)\n- Allowable withdrawal capacity of one 5 mm screw, ~45 mm embedment in a softwood stud: **~150–500 N**, wide range because it's very sensitive to wood density, screw thread type, and how much of the 60 mm length is actually used up by drywall + bracket before it bites wood\n- Net: margin here is thin-to-adequate — nothing like the 27× margin on the board itself.\n\n**Problems (worst first):**\n1. It's not stated whether the board is screwed down to the brackets or just rests on them. If unfastened: pressing on the front overhang (e.g. ~20 kg hand load) creates ~20 N·m trying to lift the back edge off its bracket, against only ~4 N·m of resisting weight from the bare board — it can tip, especially before it's loaded with books.\n2. Screw pull-out at the top screw of each bracket is the governing structural limit, and the margin isn't large — it depends on actual stud density and true embedment depth, not just nominal screw length.\n3. Two screws per bracket is the minimum workable count; any thicker wall covering (thicker drywall, tile backer, an extra layer) eats into the ~45 mm embedment assumed above and erodes the margin fast.\n4. Bracket spacing (40 cm) only works if real studs are actually 40 cm apart there — that needs verifying with a stud finder, not assumed from the design.\n\n**Better option:** None needed for the board/span itself — two-bracket, 18 mm ply at 40 cm span is the standard, correct way to do this. The fix is in the connection details, not the concept.\n\n**Improvements (ranked):**\n1. Screw the board down into the top of both brackets. No trade-off, closes the tip-over risk entirely.\n2. Verify stud locations before drilling; if they don't land at 40 cm, either shift the brackets to match or use a rated heavy-duty hollow-wall anchor for whichever one misses. Trade-off: overhangs may end up slightly uneven.\n3. Use brackets with 3–4 mounting holes (or add screws) instead of 2 — roughly doubles the tension capacity at the top for minimal cost.\n4. If staying with 2 screws, go to 5×70–80 mm (2×4 studs are ~89 mm deep, so this fits) for deeper embedment and more pull-out margin. Pre-drill to avoid splitting.\n\n**Questions:**\n- Will the board be screwed to the brackets, or just resting on them? Default assumed: screwed down (see Problem 1).\n- Wall construction — timber stud + drywall, or something else? Default assumed: timber stud, ~12.5 mm drywall.\n- How full will it realistically get? Default assumed: fully packed, ~20–30 kg over the 60 cm run.\n\n**Next:** No redesign of the shelf itself is needed. If you confirm the wall type and that it'll be screwed down, I can spec exact screw length/count or check a specific bracket's hole spacing against the numbers above."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.4,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 0.4,
+    "overallPassRate": 0
+  }
+}

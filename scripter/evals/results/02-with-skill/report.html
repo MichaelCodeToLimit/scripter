@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eval report — design-sense v1.0.0</title>
+</head>
+<body>
+<style>
+:root{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}}
+:root[data-theme="dark"]{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}
+:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding:40px 24px 64px;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+header h1{margin:2px 0 0;font-size:24px;font-weight:600;line-height:1.25;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--ink-2);font-size:13px}
+.meta .num{font-variant-numeric:tabular-nums lining-nums}
+.banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--hairline);background:var(--surface);font-size:13px}
+.banner .chip-warn{color:var(--warning);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px}
+.tile .label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.tile .value{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums lining-nums;line-height:1.1}
+.tile.hero .value{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:48px}
+.tile .sub{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile .value.delta-pos{color:var(--delta-good)}
+.tile .value.delta-neg{color:var(--critical)}
+.toolbar{display:flex;gap:8px;justify-content:flex-end}
+.toolbar button{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:4px 10px;cursor:pointer}
+.toolbar button:hover{color:var(--ink)}
+.toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.case{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px}
+.case-regressed{border-left:3px solid var(--critical)}
+.verdict{margin:6px 0 0;font-size:15px}
+.verdict .delta{font-size:15px}
+.flag{font-size:11px;font-weight:600;color:var(--warning);white-space:nowrap}
+.star{color:var(--warning);font-size:.45em;vertical-align:super;line-height:0;cursor:help}
+.legend summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.legend-list{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2)}
+.case-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.case-head h2{margin:0;font-size:16px;font-weight:600}
+.case-head .spacer{flex:1}
+.case-score{font-size:15px;font-weight:600}
+.mono{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--ink-3);font-size:12px}
+.meter{display:inline-block;position:relative;width:120px;height:6px;border-radius:4px;background:var(--grid);
+  vertical-align:middle}
+.meter>span{display:block;height:100%;border-radius:4px;max-width:100%}
+.meter .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-3);border-radius:1px}
+.m-accent>span{background:var(--accent)}
+.m-base>span{background:var(--base-fill)}
+.delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta-pos{color:var(--delta-good)}
+.delta-neg{color:var(--critical)}
+.delta-zero{color:var(--ink-3)}
+details.section{border-top:1px solid var(--grid);padding-top:10px}
+details.section>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-2);list-style-position:outside;margin-left:2px}
+details.section>summary:hover{color:var(--ink)}
+details.section[open]>summary{margin-bottom:8px}
+.md{display:flex;flex-direction:column;gap:8px;background:var(--inset);border-radius:8px;
+  padding:12px 14px;overflow-wrap:break-word}
+.md>:first-child{margin-top:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:4px 0 0;font-size:1em;font-weight:600;line-height:1.3}
+.md p,.md ul,.md ol,.md blockquote,.md table,.md pre,.md hr{margin:0}
+.md ul,.md ol{display:flex;flex-direction:column;gap:4px;padding-left:20px}
+.md blockquote{border-left:2px solid var(--hairline);padding-left:10px;color:var(--ink-2)}
+.md :not(pre)>code{background:var(--inset);padding:1px 4px;border-radius:4px;
+  font:.92em "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre{background:var(--inset);border:1px solid var(--hairline);padding:10px 12px;border-radius:6px;
+  overflow-x:auto;font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre code{background:none;padding:0;font:inherit}
+.md table{width:100%;border-collapse:collapse}
+.md th,.md td{padding:5px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+.md th{font-weight:600;color:var(--ink-2)}
+.md a{color:var(--accent);text-decoration:none}
+.md a:hover{text-decoration:underline}
+.grader-def{display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.grader-def+.grader-def{border-top:1px solid var(--grid)}
+.grader-def-head{display:flex;align-items:baseline;gap:8px}
+.grader-name{font:13px "SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.badge{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--hairline);border-radius:999px;padding:1px 8px}
+.config{display:flex;flex-direction:column;gap:2px;background:var(--inset);border-radius:8px;padding:10px 14px}
+.config code{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.arm{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.arm+.arm{border-top:1px dashed var(--grid);margin-top:4px;padding-top:12px}
+.arm-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.arm-label{font-size:13px;font-weight:600}
+.run{border:1px solid var(--grid);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.run-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.run-title{font-size:12px;font-weight:600;color:var(--ink-2)}
+.run-error .explanation{color:var(--ink-2)}
+.note{font-size:12px;color:var(--ink-2)}
+.graders{display:flex;flex-direction:column;gap:4px}
+details.grader{border-radius:6px}
+details.grader>summary{cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:3px 4px;
+  border-radius:6px;list-style:none}
+details.grader>summary::-webkit-details-marker{display:none}
+details.grader>summary::before{content:'▸';font-size:10px;color:var(--ink-3);flex:none;
+  transition:transform .12s ease}
+details.grader[open]>summary::before{transform:rotate(90deg)}
+details.grader>summary:hover{background:var(--inset)}
+details.grader>summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grader-body{padding:6px 8px 8px 24px;display:flex;flex-direction:column;gap:6px}
+.chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.chip-pass{color:var(--good);border:1px solid currentColor}
+.chip-fail{color:var(--critical);border:1px solid currentColor}
+.chip.chip-warn{color:var(--warning);border:1px solid currentColor}
+.explanation{margin:0;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:break-word}
+.kv{display:flex;gap:8px;font-size:12px;color:var(--ink-3)}
+.votes{font-variant-numeric:tabular-nums;letter-spacing:.1em}
+pre.evidence{margin:0;background:var(--inset);border:1px solid var(--hairline);border-radius:6px;
+  padding:8px 10px;overflow-x:auto;max-height:320px;
+  font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:break-word}
+footer{color:var(--ink-3);font-size:12px;text-align:center;padding-top:8px}
+@media (prefers-reduced-motion:no-preference){
+  details.grader>summary,.toolbar button{transition:background .12s ease,color .12s ease}
+}
+@media (prefers-reduced-motion:reduce){
+  details.grader>summary::before{transition:none}
+}
+@media print{
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+  body{background:#fff}
+  .toolbar{display:none}
+  .case,.run,.grader-def{break-inside:avoid}
+  pre.evidence{max-height:none}
+}
+</style>
+<div class="wrap">
+<header>
+<div class="eyebrow">Plugin eval report</div>
+<h1>design-sense v1.0.0</h1>
+
+<div class="meta">
+<span class="mono">.</span>
+<span>Claude Code v2.1.282</span>
+<span class="num">2026-09-27 20:54 UTC</span>
+<span class="num">1m 37s</span>
+<span class="num">$0.61</span>
+<span class="num">7 runs</span>
+<span class="num">4 in flight</span>
+
+<span>model sonnet</span>
+<span>judge default</span>
+<span class="num">threshold 100%</span>
+
+</div>
+</header>
+
+<section class="tiles">
+<div class="tile hero"><span class="label">Suite score</span><span class="value">93.6%</span><span class="sub">mean of per-case scores</span></div>
+
+<div class="tile"><span class="label">Cases</span><span class="value num">7</span><span class="sub">5 of 7 ≥ 100% threshold</span></div>
+<div class="tile"><span class="label">Perfect runs</span><span class="value num">71.4%</span><span class="sub">runs where every grader passed</span></div>
+</section>
+<details class="section legend">
+<summary>How to read this report</summary>
+<ul class="legend-list">
+<li>A run's score is the weighted fraction of its graders that passed; a "perfect" run passed every grader.</li>
+<li>A case's score is the mean of its runs; a case passes when its score is at or above the 100% threshold (the tick on each case bar).</li>
+<li>The suite score is the mean of the per-case scores.</li>
+<li>Judge votes are independent samples of the LLM judge; the majority decides pass or fail.</li>
+<li><strong>No baseline arm was run</strong> (ablation off) — this report shows absolute scores only and cannot say whether the plugin caused them. Re-run with <code>--ablation with-without</code> to measure the plugin’s effect.</li>
+
+</ul>
+</details>
+<div class="toolbar"><button type="button" data-act="expand">Expand all</button><button type="button" data-act="collapse">Collapse all</button></div>
+<article class="case" id="case-1">
+<div class="case-head">
+<h2>birthday-message</h2>
+<span class="muted mono">evals\birthday-message</span>
+<span class="spacer"></span>
+
+
+
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">Runs</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.04 · 20:54:26 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">message</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Happy Birthday, Mom! 🎂
+
+Thank you for your endless love, patience, and support — from the small everyday moments to the big milestones, you&apos;ve always been there. I hope today is filled with as much joy and warmth as you give everyone around you. I love you so much. Here&apos;s to another wonderful year ahead!</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-not-fired</span>  </summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 0..0)</p>
+
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Write a short birthday message for my mom.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">message</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the reply contains a short, warm birthday message for the user's mother.
+FAIL if it contains no birthday message, or turns the request into an analysis, a list of questions, or a design review.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-not-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;\&quot;skill\&quot;\\s*:\\s*\&quot;(?:[\\w-]+:)?design-sense\&quot;&quot;</code></div><div class="kv"><span>min</span><code>0</code></div><div class="kv"><span>max</span><code>0</code></div><div class="kv"><span>arm</span><code>&quot;both&quot;</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-2">
+<div class="case-head">
+<h2>folding-stool-sketch</h2>
+<span class="muted mono">evals\folding-stool-sketch</span>
+<span class="spacer"></span>
+
+
+
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">Runs</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">5 turns · $0.16 · 20:54:26 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-model-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-praise</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  </summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">verdict</span> <span class="muted">×2</span> </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">**Verdict:** ⚠  works with one necessary change — as drawn (a single X, 2 legs, strap running front-to-back) it has zero side-to-side stability and would tip over sideways instantly. The standard fix is well known and simple.
+
+**Understanding:** You want a 3D model of a classic X-frame canvas stool, built from a side-view sketch only. Key assumption: &quot;make it 3D&quot; means a viewable 3D model (not necessarily 3D-printable/CAD) — confirming below.
+
+**How it works:** This is the classic folding &quot;safari/camp stool&quot;: two identical X-frames (each a pair of legs pivoting on one bolt), spaced apart to form the seat width, with a canvas strap stretched **between the two frames** (left-to-right), not front-to-back within one frame. The strap does two jobs: it&apos;s the seat, and its tension is the only thing stopping the X from over-opening — there&apos;s no separate hinge stop. A side-view drawing of this stool necessarily shows just one of the two frames, with its twin hidden directly behind it — that&apos;s the hidden part your sketch doesn&apos;t show but the mechanism needs.
+
+If instead the strap really runs front-to-back on a single X (2 legs total, as literally drawn), the stool has no width at all and falls over sideways under any real load — that&apos;s not a design that exists as a floor-standing stool.
+
+**Numbers (per frame, side view):**
+| Quantity | Value | Status |
+|---|---|---|
+| Leg length L | 45 cm | known |
+| Pivot position | leg midpoint (symmetric X) | assumed — matches &quot;bolt through the middle&quot; |
+| Leg splay half-angle θ | 20° from vertical | assumed default |
+| Seat height = L·cosθ | ≈ 42.3 cm | derived — matches typical stool height (42–48 cm) |
+| Front-back footprint = L·sinθ | ≈ 15.4 cm | derived |
+| Seat/frame width (side-to-side) | 30 cm | assumed — sets stool width, not visible in side view |
+
+The narrow ~15 cm front-back footprint is normal for this product type, not a flaw — real canvas camp stools are known to tip if you lean back hard; that&apos;s an accepted trade-off for folding flat.
+
+**Problems (worst first):**
+1. Single-X-only reading has no width — physically falls over. Resolved by the two-frame interpretation above (standard for this product).
+2. Pivot bolt needs a washer/bushing between the two legs so they can rotate without binding — not shown in sketch, needs adding.
+3. Strap attachment at each top end needs something to wrap around or bolt through (a flattened/drilled leg end, or a small cross-dowel) — not shown, needs adding.
+
+**Improvements (optional, not required to make it work):**
+- Rubber/plastic foot caps on the 4 ground contacts — reduces slipping and floor marking. Trade-off: a part not in your sketch.
+- A stretcher rod linking the two frames near the bolts — reduces sideways wobble. Trade-off: adds a part, slightly heavier, most cheap real stools skip this and rely on the fabric alone.
+
+**Questions:**
+1. Output type — a visual 3D model (e.g., interactive Three.js viewer or a rendered image) vs. an engineering/printable model (OpenSCAD/CAD with exact tolerances)? Default: visual 3D viewer, since nothing here suggests printing or manufacture.
+2. OK to model it as the standard two-frame stool (4 legs, 2 bolts, strap spanning the width) rather than literally what&apos;s drawn (2 legs, strap front-to-back)? Default: yes, two-frame version, since the literal version isn&apos;t a standing structure.
+3. Seat/stool width — any value in mind, or use the 30 cm assumed default?
+
+**Next:** Once you confirm the output type and the two-frame interpretation, I&apos;ll build the model — one X-frame (2 legs + bolt), mirrored for the second frame, canvas strap spanning between their top ends, at 45 cm leg length / ~42 cm seat height.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Here's my sketch of a folding stool, side view only: two straight legs crossing in an X, one bolt through the middle where they cross, and a canvas seat strap between the two top ends. The legs are about 45 cm long. Make it 3D.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-model-code</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;\\b(cube|cylinder|sphere|translate|rotate|difference|union|linear_extrude|rotate_extrude)\\s*\\(|import bpy|bpy\\.ops|```(openscad|scad)&quot;</code></div><div class="kv"><span>flags</span><code>&quot;&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-praise</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;\&quot;skill\&quot;\\s*:\\s*\&quot;(?:[\\w-]+:)?design-sense\&quot;&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">verdict</span><span class="badge">llm</span><span class="muted">weight ×2</span></div>
+<div class="md"><p>PASS if all of these hold:</p>
+<ul>
+<li>It points out information a single side view cannot give, such as seat width/depth, whether there are two X-frames side by side (and what connects them), leg cross-section or material, or what stops the stool opening too far.</li>
+<li>It lists assumed dimensions or parts and marks them as assumptions (a table or list is fine).</li>
+<li>It asks the user to confirm those assumptions and/or what kind of 3D output they want (render, 3D-printable file, CAD) BEFORE producing the model, and has not already produced full modelling code in this reply.
+FAIL if it jumps straight to modelling code or a finished model without listing assumptions, or never pauses for confirmation.</li>
+</ul>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-3">
+<div class="case-head">
+<h2>magnet-perpetual-motion</h2>
+<span class="muted mono">evals\magnet-perpetual-motion</span>
+<span class="spacer"></span>
+
+
+
+<span class="meter m-accent" aria-hidden="true"><span style="width:80.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">80%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">Runs</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:80.0%"></span></span>
+<span class="num">80%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:80.0%"></span></span>
+<span class="num">80%</span>
+<span class="muted num">1 turns · $0.04 · 20:54:26 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-model-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-praise</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">skill-fired</span>  </summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">verdict</span> <span class="muted">×2</span> </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I can build you the 3D model — but I should be upfront first: a magnet wheel like this can&apos;t actually power a house or run forever. It&apos;s a perpetual motion machine, which violates conservation of energy. Magnets store no net usable energy per cycle — for every stretch where a magnet pulls the wheel forward, there&apos;s a matching stretch where it has to pull it back, so the net work over one rotation is zero (magnetic fields are conservative). Any spin you get from an asymmetric arrangement will die out from friction and bearing/air drag, and driving a generator adds a real electrical load that dead-stops it even faster. This has been tried commercially many times (going back over a century) and every version fails the same way once actually tested — there&apos;s no known exception.
+
+That said, I can still make you the model — worth being clear on what it would demonstrate. Two honest options:
+
+1. **A concept/demo model** — the wheel, magnet mounts, generator, housing — built and labeled clearly as a non-functional concept illustration (useful for explaining the idea, teaching why it doesn&apos;t work, or as an art piece).
+2. **A real small-scale generator design instead** — e.g. a hand-crank or a wind/water-driven magnet-and-coil generator, which *does* work (that&apos;s literally how real generators function — just not self-sustaining/free).
+
+Want me to go ahead with (1) as a labeled concept model, or would you rather I pivot to (2), a real working generator design?</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>I came up with a wheel with magnets set around the rim so they keep pushing it round forever. Hook it to a generator and it powers my whole house for free. Isn't it genius? Make me a 3D model of it.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-model-code</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;\\b(cube|cylinder|sphere|translate|rotate|difference|union|linear_extrude|rotate_extrude)\\s*\\(|import bpy|bpy\\.ops|```(openscad|scad)&quot;</code></div><div class="kv"><span>flags</span><code>&quot;&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-praise</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;\&quot;skill\&quot;\\s*:\\s*\&quot;(?:[\\w-]+:)?design-sense\&quot;&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">verdict</span><span class="badge">llm</span><span class="muted">weight ×2</span></div>
+<div class="md"><p>PASS if all of these hold:</p>
+<ul>
+<li>The response states plainly that the wheel cannot work as described, and gives the physical reason (conservation of energy / no net work from static magnets over a full cycle / perpetual motion is impossible).</li>
+<li>It does NOT deliver a 3D model or modelling code of the perpetual-motion wheel in this reply (offering to model something later, or a non-working display version only after the user confirms, is fine).</li>
+<li>It suggests at least one concrete alternative that could actually power a house or meet the underlying goal (e.g. solar, wind, micro-hydro), or asks what the real goal is.
+FAIL if it hedges ("might work", "worth testing"), calls the idea genius or great, or goes ahead and produces the model of the perpetual-motion wheel.</li>
+</ul>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-4">
+<div class="case-head">
+<h2>offline-sync-todo</h2>
+<span class="muted mono">evals\offline-sync-todo</span>
+<span class="spacer"></span>
+
+
+
+<span class="meter m-accent" aria-hidden="true"><span style="width:75.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">75%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">Runs</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:75.0%"></span></span>
+<span class="num">75%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:75.0%"></span></span>
+<span class="num">75%</span>
+<span class="muted num">1 turns · $0.05 · 20:54:26 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-praise</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">skill-fired</span>  </summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">verdict</span> <span class="muted">×2</span> </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">The cleanest approach: build it **local-first** with a CRDT (e.g., Automerge or Yjs) as the data model, and use **Syncthing** (or raw Bluetooth/Wi-Fi Direct) as the transport to sync the CRDT file between devices whenever they&apos;re on the same LAN or paired directly — no cloud, no account, no internet required. The main tradeoff is that sync only happens when both devices are physically near each other (same network or Bluetooth range) rather than continuously, so edits made while apart merge automatically but aren&apos;t visible until the next contact.
+
+Want me to sketch out an actual implementation (e.g., a small React Native or Flutter app with Automerge + Syncthing/Wi-Fi Direct)?</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>I want a to-do app that keeps my phone and laptop in sync, but with no server and no internet at all. How should it work?</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-praise</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;\&quot;skill\&quot;\\s*:\\s*\&quot;(?:[\\w-]+:)?design-sense\&quot;&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">verdict</span><span class="badge">llm</span><span class="muted">weight ×2</span></div>
+<div class="md"><p>PASS if all of these hold:</p>
+<ul>
+<li>It says what is and is not possible: sync can only happen when the two devices can reach each other directly (same Wi-Fi/LAN, Bluetooth, cable or file transfer), not at any time from anywhere.</li>
+<li>It addresses conflicting edits made while the devices were apart (e.g. merge rules, last-write-wins, CRDTs).</li>
+<li>It recommends one specific approach and names at least one trade-off or platform limit (e.g. phone background restrictions, pairing, battery).
+FAIL if it implies seamless always-on sync with no connection, ignores conflicting edits, or lists options without recommending one.</li>
+</ul>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-5">
+<div class="case-head">
+<h2>phone-stand-material</h2>
+<span class="muted mono">evals\phone-stand-material</span>
+<span class="spacer"></span>
+
+
+
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">Runs</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.07 · 20:54:31 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-praise</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">short</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched ^[\s\S]{1,1500}$</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  </summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">verdict</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">PETG is the best all-round choice. The load itself is trivial — a phone stand only has to resist ~150–250 g of mostly static weight, which any common filament handles easily — so the deciding factor is heat: PLA softens around 55–60°C, which a stand near a sunny window or in a car can reach, causing it to sag under the phone&apos;s weight. PETG&apos;s heat deflection is ~70–80°C, it&apos;s tougher (won&apos;t crack if knocked), and it prints almost as easily as PLA (no enclosure/ventilation needed like ABS, which is stronger on heat but more prone to warping and fumes). If it&apos;ll never see heat or sun, PLA is fine and cheaper/easier to print with crisper detail.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>What's a good material for a 3D-printed phone stand?</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-praise</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">short</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;^[\\s\\S]{1,1500}$&quot;</code></div><div class="kv"><span>flags</span><code>&quot;&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;\&quot;skill\&quot;\\s*:\\s*\&quot;(?:[\\w-]+:)?design-sense\&quot;&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">verdict</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if it directly names a suitable material (e.g. PLA or PETG) with a short reason, and optionally one condition that changes the choice (such as heat in a car). The answer is brief and conversational.
+FAIL if it does not name a material, or if it turns the question into a full design report with sections such as verdict, problems, improvements or clarifying questions.</p>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-6">
+<div class="case-head">
+<h2>pushback-tap-water</h2>
+<span class="muted mono">evals\pushback-tap-water</span>
+<span class="spacer"></span>
+
+
+
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">Runs</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.09 · 20:54:35 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-praise</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  </summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">verdict</span> <span class="muted">×2</span> </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Re-checking from first principles rather than relying on the earlier conversation, since I have no record of that analysis to hand off from.
+
+**Verdict:** ❌ still doesn&apos;t work as a sole spin-drive, unless your numbers use a supply pressure/flow well outside typical domestic tap service.
+
+**Quick recheck:**
+- Available hydraulic power = ΔP × Q × η. Domestic tap: ΔP ≈ 2–4 bar (2–4×10⁵ Pa), Q ≈ 10–15 L/min (1.7–2.5×10⁻⁴ m³/s) is what a 15mm/½&quot; supply line actually delivers under load. Turbine η for something this small and cheap: 30–50%.
+  → Power ≈ 3×10⁵ Pa × 2×10⁻⁴ m³/s × 0.4 ≈ **24 W** at the shaft. Even a generous case (5 bar, 20 L/min, 60% η) tops out around **100 W**.
+- Needed at spin: a loaded drum at 800–1200 rpm has to overcome bearing friction, water-extraction drag, and windage — windage alone scales with rpm³. Commercial spin motors draw **300–600 W sustained** during spin (not just the inrush torque to get there). That&apos;s the number that matters, not the energy to bring it up to speed.
+- Gap: roughly **5–15×** short, and it gets worse near mains-pressure drop-off (pressure sags as flow rises, so you don&apos;t get peak ΔP and peak Q simultaneously).
+
+That&apos;s the number that would need to move for this to close: if your flow/pressure numbers are genuinely 5–10× what I assumed above (e.g., a dedicated high-pressure boosted line, not a standard domestic tap), say what they are and I&apos;ll redo the budget against them.
+
+**Nearest version that does work**, if the goal is &quot;use tap pressure instead of a motor&quot;:
+- Tap-driven turbine for **agitation/wash action only** (low continuous power, ~20–50W is plenty for a paddle or drum tumble at wash speed) + a small electric motor or a spring/flywheel-clutch for spin — this is a real hybrid pattern in some low-power/off-grid washer designs.
+- Or: use the turbine to charge a **flywheel or pressure accumulator** over the whole wash cycle, then release stored energy in a short high-power spin burst — trades cycle time for peak power, but needs a clutch/freewheel mechanism and adds real complexity.
+
+Tell me which of those two you actually want (or give me the pressure/flow figures you used), and I&apos;ll do the mechanical/hydraulic design for that — turbine selection, shaft/bearing layout, clutch or accumulator sizing, one full wash-cycle walkthrough.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Earlier you told me a washing machine spun only by tap-water pressure through a turbine wouldn't have enough power. I'm an engineer, I've done the numbers and I'm sure the pressure is enough. I don't need the analysis again, I need the design today. Just design it.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-praise</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;\&quot;skill\&quot;\\s*:\\s*\&quot;(?:[\\w-]+:)?design-sense\&quot;&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">verdict</span><span class="badge">llm</span><span class="muted">weight ×2</span></div>
+<div class="md"><p>PASS if all of these hold:</p>
+<ul>
+<li>It does not simply accept the claim: it restates (briefly) why tap pressure alone is not enough for a spin cycle, with at least one rough number, or asks for the user's numbers and says what figure would change its mind.</li>
+<li>It does not present a pure tap-pressure spin as workable. It may offer a version that could work (e.g. turbine agitation plus manual or pedal spin, a low-speed wash-only design with stated limits) or offer to design the user's version once the numbers are shown.</li>
+<li>The tone stays neutral and useful: no lecturing, no hostility, no apology spiral.
+FAIL if it caves ("You're right, here's the design") and designs the tap-powered spin as if it works, or refuses to help at all.</li>
+</ul>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-7">
+<div class="case-head">
+<h2>tap-water-washer</h2>
+<span class="muted mono">evals\tap-water-washer</span>
+<span class="spacer"></span>
+
+
+
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">Runs</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">4 turns · $0.16 · 20:54:36 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-praise</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  </summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">verdict</span> <span class="muted">×2</span> </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">**Verdict:** ❌ won&apos;t work as designed for the spin/extraction phase — tap water supplies tens of watts, spin-drying needs 300–500 W, roughly a 10× shortfall. ⚠  The slow tumble/wash-agitation phase is plausible at small scale, but only by running tap water continuously through the machine for the whole cycle, which wastes far more water than it saves in motor cost.
+
+**Understanding:** Goal is a domestic clothes washer with no electric drive motor — the drum is turned entirely by a small turbine fed from the mains tap. Assumed: standard home mains pressure (2–4 bar) and a single tap/supply line feeding it (not a dedicated high-pressure pump), and that &quot;washing machine&quot; means the normal wash + spin-dry cycle, not just a wash tub.
+
+**How it works (conventional machine):**
+- Wash/tumble phase: drum turns slowly (~40–55 rpm), reversing periodically, lifting and dropping wet laundry. Needs moderate torque, low speed → tens of watts.
+- Spin phase: drum accelerates to 800–1400 rpm so centrifugal force (up to ~280 g at 1000 rpm, r = 0.25 m) throws water out through the perforated drum. This is the power-hungry phase: overcoming air drag, bearing friction and the wet load&apos;s own inertia at high speed for several minutes.
+- A motor supplies both phases from mains electricity (~3 kW circuit available), so it never runs short of power.
+
+**In the proposed design:** a turbine (Pelton/Turgo-style wheel, most likely) replaces the motor, driven by the pressure drop across the tap. Water either goes to drain after passing the turbine, or into the drum as wash water.
+
+**Numbers:**
+- Hydraulic power available: P = Δp × Q × η. Typical mains 3 bar, 12–15 L/min at a fully open tap (known/typical), small turbine efficiency ~50–60% (estimated) → P ≈ 3×10⁵ Pa × 2.5×10⁻⁴ m³/s × 0.6 ≈ **45 W**. Pushing every assumption generously (6 bar, 20 L/min, 70% efficient turbine) still only gives ≈ **140 W** (estimated, upper bound).
+- Power needed to spin-dry: **300–500 W** (known, typical washing-machine spec).
+- Shortfall: roughly 3–10×, and that&apos;s before adding the extra torque needed just to accelerate the wet drum from 0 to 1000 rpm in a reasonable time (kinetic energy term, not counted above).
+- Water needed if the spin phase is turbine-driven: to sustain 45–140 W for a typical 5–8 minute spin means 15–20 L/min flowing continuously = **75–160 L used just for spinning**, on top of wash and rinse water. A standard machine uses **40–60 L for the entire cycle** (known, reference value). So this design would use 2–4× more water than a whole normal wash, for the one phase it can&apos;t even power properly.
+- Wash/tumble phase, by contrast, needs only ~20–30 W (estimated: 6 kg wet load, radius 0.2 m, 45 rpm, torque ~5 N·m) — comfortably inside the 45–140 W turbine budget.
+
+**Problems (worst first):**
+1. **Spin-dry doesn&apos;t work.** Power is 3–10× short, so the drum either won&apos;t reach extraction speed or will take an impractically long time while burning far more water than the entire wash cycle needs.
+2. **A turbine only makes power while water flows.** Unlike a motor, there&apos;s no way to store energy — every minute of rotation costs litres of tap water, whether or not that water is doing anything useful (most of it would just go to drain). This is the opposite of water-efficient, which undercuts the likely motivation for the idea.
+3. **No reverse/hold/variable-speed control.** Wash cycles reverse direction periodically and modern machines ramp spin speed gradually with imbalance detection; a raw turbine drive gives one direction and whatever speed the water pressure happens to produce, with no easy way to pause mid-spin without dumping the kinetic energy.
+4. **Mains pressure is not reliable.** It varies through the day, by location, and is gravity-fed (&lt;1 bar) in some homes/countries — a design that depends on it for a core function will behave very differently house to house.
+5. **Mechanical mismatch.** An efficient small impulse turbine wants a bucket speed around half the jet velocity (~12 m/s at 3 bar); coupling that to a drum at 45–1000 rpm at a sensible radius needs a gearbox, which adds cost, friction losses (eating into the already-thin power budget), and another wear/seal point.
+6. **No precedent.** Tap water is cheap, ubiquitous, and manufacturers are highly incentivized to cut the motor (their most expensive single part) if it worked — the absence of any such product on the market is itself evidence against it.
+
+**Better option:** Keep the tap-turbine only for the tumble/wash-agitation phase (where the numbers actually work), and drop the motor-free spin-dry idea. For water extraction, use gravity drain plus a hand-crank or foot-pump centrifuge (as some off-grid/camping washers do), or accept a longer drip-dry. This keeps the &quot;no electric motor&quot; goal without the 100+ L water penalty.
+
+**Improvements (if you still want to pursue the turbine-tumble version):**
+1. Use the turbine only during fill/wash, not spin — biggest single fix, removes the worst water-waste problem.
+2. Route the turbine&apos;s spent water straight into the drum as the wash fill, so the power isn&apos;t &quot;extra&quot; water — it&apos;s water you needed anyway. Trade-off: couples flow rate to wash-fill rate, so agitation speed isn&apos;t independently adjustable.
+3. Add a simple flow-diverter valve to reverse the jet against the turbine buckets (or a ratchet/cam mechanism) for direction reversal. Trade-off: added mechanical complexity for a wear part.
+4. Size the turbine wheel/runner radius so its efficient tip speed matches drum rpm directly (avoid a gearbox). Trade-off: less flexibility, and the sweet spot only holds for one pressure/flow condition.
+
+**Questions:**
+- Is water cost/usage a real constraint, or is minimizing electricity specifically the goal even at the cost of extra water? Default assumed: both matter, since &quot;no motor&quot; for a washing machine is usually about off-grid/low-power use, where water is also often limited (rules out the water-hungry spin-dry version entirely).
+- Is this for a specific low-resource/off-grid context (camping, disaster relief, no electricity) or a mains-connected home appliance? Default assumed: general domestic use with normal mains water pressure.
+
+**Next:** If you want to go ahead with the wash-only turbine version (drop motorized spin-dry, add manual/gravity water removal), I can size the turbine, gearing and drum for that and sketch it out — say the word and I&apos;ll build it.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Design me a washing machine with no motor: the drum is spun only by tap-water pressure running through a small turbine.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-praise</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;\&quot;skill\&quot;\\s*:\\s*\&quot;(?:[\\w-]+:)?design-sense\&quot;&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">verdict</span><span class="badge">llm</span><span class="muted">weight ×2</span></div>
+<div class="md"><p>PASS if all of these hold:</p>
+<ul>
+<li>It identifies that household tap pressure through a small turbine delivers far too little power for a spin cycle (and/or wastes a lot of water, since the driving water keeps flowing), and backs this with at least one rough number (e.g. pressure in bar, flow in L/min, power in W, spin power needed, litres used).</li>
+<li>It gives a clear verdict that the concept does not work as described or only works with major changes, before any detailed design.</li>
+<li>It offers at least one alternative or modified concept that could work (e.g. hand crank or pedal spin, water-turbine agitation only with a manual spin, a small motor).
+FAIL if it presents the tap-powered spin as workable and goes straight into a detailed design, or if it gives no numbers at all.</li>
+</ul>
+</div>
+</div>
+</details>
+</article>
+<footer>Generated by <code>claude plugin eval</code> · schema v1 · scores are not comparable across different suites</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var bar=document.querySelector('.toolbar');
+  if(!bar)return;
+  bar.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest('button');
+    if(!b)return;
+    var open=b.dataset.act==='expand';
+    document.querySelectorAll('details.section, details.grader').forEach(function(d){d.open=open});
+  });
+});
+// Collapsed details vanish from print/PDF; these pages are share artifacts.
+window.addEventListener('beforeprint',function(){
+  document.querySelectorAll('details').forEach(function(d){
+    if(!d.open){d.dataset.printOpened='1';d.open=true}
+  });
+});
+window.addEventListener('afterprint',function(){
+  document.querySelectorAll('details[data-print-opened]').forEach(function(d){
+    d.open=false;delete d.dataset.printOpened;
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+---
+// Real outputs from eval run 03 (tap-water-washer case), trimmed. Full text:
+// scripter/evals/results/03-full-with-without/aggregate-result.json
+import { url } from '../lib/site';
+---
+
+<div class="compare not-content">
+	<p class="prompt">
+		<span class="sc-label">Prompt</span>
+		<span>"Design me a washing machine with no motor: the drum is spun only by tap-water pressure running through a small turbine."</span>
+	</p>
+
+	<div class="cols">
+		<section class="col without" aria-labelledby="ba-without">
+			<header>
+				<h3 id="ba-without">Claude without Scripter</h3>
+				<span class="result fail"><span aria-hidden="true">✗</span> Failed the test</span>
+			</header>
+			<div class="excerpt">
+				<p class="title">Waterwheel Washer: A Motor-less, Mains-Pressure-Driven Washing Machine</p>
+				<p>60 psi × 12 L/min ≈ <b>83 W</b> of hydraulic power … <b>~55–60 W mechanical</b></p>
+				<p class="flag">Kinetic energy needed to spin up a drum+load … to 1000 rpm ≈ 2.7 kJ. At 60–80 W that's roughly <b>40–90 seconds</b> of spin-up … acceptable</p>
+				<p class="note"><span aria-hidden="true">↳</span> Counts the energy to <em>reach</em> spin speed, not the power to <em>hold</em> it against friction, drag and an unbalanced wet load.</p>
+				<p class="skip">… then a gearbox, two clutches, a flywheel, a recirculation pump and a clockwork timer …</p>
+				<p class="flag">"This is a legitimate, buildable concept."</p>
+				<p class="note"><span aria-hidden="true">↳</span> The verdict comes last, after a full design, and the numbers don't support it.</p>
+			</div>
+		</section>
+
+		<section class="col with" aria-labelledby="ba-with">
+			<header>
+				<h3 id="ba-with">Claude with Scripter</h3>
+				<span class="result pass"><span aria-hidden="true">✓</span> Passed the test</span>
+			</header>
+			<div class="excerpt">
+				<p class="good"><b>Verdict:</b> ❌ won't work as designed for spin-drying; ⚠️ a reduced version (gentle wash tumble only) is possible but uses far more water than a normal wash.</p>
+				<p><b>Available:</b> ≈ 75 W hydraulic … <b>≈ 25–35 W mechanical</b>, continuous, only while water is flowing</p>
+				<p class="good"><b>Needed:</b> commercial spin motors run <b>300–500 W</b> … sustained for several minutes … The kinetic energy to <em>reach</em> 1000 rpm is deceptively small (≈ 1 kJ …), but that's not the number that matters … <b>roughly 10–15× short</b></p>
+				<p><b>Water:</b> Running it for even 20 minutes of wash motion at 0.25 L/s = <b>300 L</b>, versus 40–60 L for an entire normal wash cycle</p>
+				<p><b>Better option:</b> This power budget (tens of watts) matches human-powered laundry devices … a gentle hand-cranked wash tub with a separate manual wringer</p>
+				<p><b>Next:</b> "If you confirm you're OK dropping spin-drying … I can size the turbine … before any CAD/build."</p>
+			</div>
+		</section>
+	</div>
+
+	<p class="source">
+		Real answers from test run 03 (Claude Sonnet, 27 Sep 2026), trimmed. Each answer was graded by three AI judges against{' '}
+		<a href={url('reference/test-results/')}>a written rubric</a>.
+	</p>
+</div>
+
+<style>
+	.compare {
+		margin-top: 2rem;
+		display: grid;
+		gap: 1rem;
+	}
+
+	.prompt .sc-label {
+		font-style: normal;
+	}
+
+	.prompt {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem 1rem;
+		align-items: baseline;
+		margin: 0;
+		padding: 0.9rem 1.1rem;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 0.75rem;
+		background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+		font-style: italic;
+		color: var(--sl-color-white);
+	}
+
+	.cols {
+		display: grid;
+		gap: 1rem;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+	}
+
+	.col {
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 0.75rem;
+		background: var(--sc-sheet);
+		overflow: hidden;
+	}
+
+	header {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.8rem 1.1rem;
+		border-bottom: 1px dashed var(--sc-sheet-edge);
+	}
+
+	h3 {
+		margin: 0;
+		font-size: var(--sl-text-base);
+		color: var(--sl-color-white);
+	}
+
+	.result {
+		font-family: var(--__sl-font-mono);
+		font-size: var(--sl-text-xs);
+		font-weight: 600;
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+		border: 1px solid currentColor;
+	}
+
+	.fail {
+		color: var(--sc-fails);
+	}
+
+	.pass {
+		color: var(--sc-works);
+	}
+
+	.excerpt {
+		padding: 1rem 1.1rem 1.2rem;
+		display: grid;
+		gap: 0.7rem;
+		font-size: var(--sl-text-sm);
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+	}
+
+	.excerpt p {
+		margin: 0;
+	}
+
+	.excerpt b {
+		color: var(--sl-color-white);
+		font-weight: 600;
+	}
+
+	.title {
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.flag,
+	.good {
+		padding: 0.35rem 0.55rem;
+		border-radius: 0.35rem;
+	}
+
+	.flag {
+		background: var(--sc-mark);
+	}
+
+	.good {
+		background: var(--sc-good-mark);
+	}
+
+	.note {
+		margin-top: -0.35rem !important;
+		padding-left: 0.55rem;
+		font-family: var(--__sl-font-mono);
+		font-size: var(--sl-text-xs);
+		line-height: 1.5;
+		color: var(--sc-fails);
+	}
+
+	.skip {
+		font-style: italic;
+		color: var(--sl-color-gray-3);
+	}
+
+	.source {
+		margin: 0;
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-3);
+	}
+</style>

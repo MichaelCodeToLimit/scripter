@@ -1,0 +1,100 @@
+---
+// Headline numbers from the with/without eval run (src/data/results.json, made by sync-skill.mjs).
+import results from '../data/results.json';
+import { caseLabel, formatDate, url } from '../lib/site';
+
+const { totals, cases } = results;
+const helped = cases.filter((c) => c.with.passed && !c.without.passed).map((c) => caseLabel(c.name));
+const hurt = cases.filter((c) => !c.with.passed && c.without.passed).map((c) => caseLabel(c.name));
+const date = formatDate(results.date);
+const list = (names: string[]) => names.join('; ');
+---
+
+<div class="results not-content">
+	<div class="tiles">
+		<div class="tile">
+			<p class="label">Passed with Scripter</p>
+			<p class="value">{totals.with}<span class="of"> of {totals.cases}</span></p>
+		</div>
+		<div class="tile muted">
+			<p class="label">Passed without it</p>
+			<p class="value">{totals.without}<span class="of"> of {totals.cases}</span></p>
+		</div>
+	</div>
+	<div class="detail">
+		<p>
+			Same prompts, same model (Claude {results.model[0].toUpperCase() + results.model.slice(1)}), one run each, {date}.
+			Scripter turned {helped.length} failures into passes: {list(helped)}.
+		</p>
+		{
+			hurt.length > 0 && (
+				<p>
+					It made {hurt.length === 1 ? 'one case' : `${hurt.length} cases`} worse: {list(hurt)}. That run tested an earlier
+					version of the skill, and the graders have been tightened since.
+				</p>
+			)
+		}
+		<p><a href={url('reference/test-results/')}>See every case, prompt and caveat →</a></p>
+	</div>
+</div>
+
+<style>
+	.results {
+		margin-top: 2rem;
+		display: grid;
+		gap: 1.5rem;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+		align-items: start;
+	}
+
+	.tiles {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+	}
+
+	.tile {
+		padding: 1.1rem 1.2rem 1.2rem;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 0.75rem;
+		background: var(--sc-sheet);
+	}
+
+	.label {
+		margin: 0;
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-2);
+	}
+
+	.value {
+		margin: 0.35rem 0 0;
+		font-size: clamp(2.5rem, 2rem + 2vw, 3.25rem);
+		font-weight: 600;
+		line-height: 1;
+		letter-spacing: -0.02em;
+		color: var(--sl-color-white);
+	}
+
+	.muted .value {
+		color: var(--sl-color-gray-3);
+	}
+
+	.of {
+		font-size: var(--sl-text-lg);
+		font-weight: 500;
+		letter-spacing: 0;
+		color: var(--sl-color-gray-3);
+	}
+
+	.detail {
+		display: grid;
+		gap: 0.75rem;
+		font-size: var(--sl-text-sm);
+		line-height: 1.6;
+		color: var(--sl-color-gray-2);
+	}
+
+	.detail p {
+		margin: 0;
+	}
+</style>

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "scripter",
+  "version": "1.0.0",
+  "description": "Makes Claude understand how a thing works and check that a design is possible, buildable and the best approach before building it. No praise; the saved effort goes into the design.",
+  "author": {
+    "name": "Michael Davies"
+  },
+  "keywords": ["design", "engineering", "feasibility", "3d", "product-design", "review"]
+}

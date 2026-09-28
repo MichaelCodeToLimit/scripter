@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-28T10:28:56.569Z",
+  "durationSeconds": 151,
+  "costUsd": 0.209617,
+  "partial": false,
+  "suite": {
+    "root": "C:\\Users\\micha\\Scripter\\scripter",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "caseFilter": "folding-stool-sketch",
+    "threshold": 0,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "scripter",
+        "version": "1.0.0",
+        "path": "C:\\Users\\micha\\Scripter\\scripter"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "folding-stool-sketch",
+      "dir": "evals\\folding-stool-sketch",
+      "source": "prose",
+      "promptMarkdown": "Here's my sketch of a folding stool, side view only: two straight legs crossing in an X, one bolt through the middle where they cross, and a canvas seat strap between the two top ends. The legs are about 45 cm long. Make it 3D.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "load-path",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "The user's side-view sketch shows a canvas strap between the two top ends of the X, i.e. running front-to-back in the side view. When someone sits, the load pushes those top ends apart, so the strap (in tension) is what holds the X at its open angle.\nPASS if the response keeps the seat canvas spanning front-to-back between the top ends shown in the side view (it may add a second X-frame and rails or bars joining the frames to carry the canvas), or asks about the layout without contradicting the sketch.\nFAIL if it moves the canvas to run side-to-side between two frames, or says the canvas holds the X open while placing it where it could not do so.",
+          "config": {
+            "criteria": "The user's side-view sketch shows a canvas strap between the two top ends of the X, i.e. running front-to-back in the side view. When someone sits, the load pushes those top ends apart, so the strap (in tension) is what holds the X at its open angle.\nPASS if the response keeps the seat canvas spanning front-to-back between the top ends shown in the side view (it may add a second X-frame and rails or bars joining the frames to carry the canvas), or asks about the layout without contradicting the sketch.\nFAIL if it moves the canvas to run side-to-side between two frames, or says the canvas holds the X open while placing it where it could not do so.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "no-model-code",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(cube|cylinder|sphere|translate|rotate|difference|union|linear_extrude|rotate_extrude)\\s*\\(|import bpy|bpy\\.ops|```(openscad|scad)",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-praise",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question|choice)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b|\\bgood (call|catch|instinct)\\b|\\bnice (touch|call)\\b|\\bsmart (move|call|idea)\\b|\\b(is|was|that.s) (fine and )?smart\\b|\\bwell[- ]thought[- ]out\\b|\\bclever (touch|trick|move)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?scripter\""
+          }
+        },
+        {
+          "name": "verdict",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "PASS if all of these hold:\n- It points out information a single side view cannot give, such as seat width/depth, whether there are two X-frames side by side (and what connects them), leg cross-section or material, or what stops the stool opening too far.\n- It lists assumed dimensions or parts and marks them as assumptions (a table or list is fine).\n- It asks the user to confirm those assumptions and/or what kind of 3D output they want (render, 3D-printable file, CAD) BEFORE producing the model, and has not already produced full modelling code in this reply.\nFAIL if it jumps straight to modelling code or a finished model without listing assumptions, or never pauses for confirmation.",
+          "config": {
+            "criteria": "PASS if all of these hold:\n- It points out information a single side view cannot give, such as seat width/depth, whether there are two X-frames side by side (and what connects them), leg cross-section or material, or what stops the stool opening too far.\n- It lists assumed dimensions or parts and marks them as assumptions (a table or list is fine).\n- It asks the user to confirm those assumptions and/or what kind of 3D output they want (render, 3D-printable file, CAD) BEFORE producing the model, and has not already produced full modelling code in this reply.\nFAIL if it jumps straight to modelling code or a finished model without listing assumptions, or never pauses for confirmation.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.209617,
+            "judgeCostUsd": 0.007664000000000001,
+            "durationSeconds": 150,
+            "startedAt": "2026-09-28T10:28:56.892Z",
+            "error": null,
+            "tracePath": "C:\\Users\\micha\\AppData\\Local\\Temp\\claude-eval-2TB1cE\\out\\trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "load-path",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "**Verdict:** ✅ works as a mechanism — this is the standard X-frame/scissor camp-stool construction. But a side view alone isn't a buildable object: an X made of two flat legs has no width and would tip over sideways. I need to add a hidden second X-frame plus a few dimensions before modelling.\n\n**Understanding:** You want a 3D model of a folding camp stool: X-legs, one pivot bolt, canvas seat strap, legs ~45 cm (known). Everything else (width, pivot position, seat height, output format) is not shown in a side view, so I've assumed defaults below.\n\n**How it works:**\n- Two legs cross and pivot on one bolt — a scissor mechanism. A stool needs a footprint in *two* directions, so there must be a second, identical X-frame set apart by the seat width, joined at the pivot (I'll use one rod/axle through both frames so it still reads as \"one bolt\" from the side) — this matches how real canvas camp stools are built.\n- The canvas isn't just decorative: it's the tension member. Sitting down pulls the top ends together; the legs resist as compression struts to the ground; the pivot bolt carries the shear between the two legs. If the canvas is too long or stretches, the X keeps opening and the stool sinks/collapses — the strap length *sets* the seat height and foot stance, it doesn't just span a fixed gap.\n- By symmetry (pivot at the midpoint of each leg), the top spread (canvas length) always equals the foot spread — same formula, so the footprint under you is as wide as the seat. That's why these stools look proportioned the way they do.\n\n**Numbers** (45 cm leg, pivot at midpoint, target seat height 28 cm — typical for this stool type, all else known/derived):\n- Leg angle from horizontal: α ≈ 38.5° (derived, sinα = 28/45)\n- Pivot height above ground: ≈ 14 cm (derived)\n- Foot spread (fore-aft footprint): ≈ 35 cm (derived, = 45 cos α)\n- Canvas strap length: ≈ 35 cm (derived, equals foot spread)\n- Seat width (frame separation): 30 cm — **assumed**, not shown in the sketch\n- Leg diameter: 18 mm dowel — **assumed**, typical for this product\n- Buckling check: Pcr ≈ 4000 N per leg (wood, E≈10 GPa) vs. ≈ 400–800 N seated load per leg — ~5–10× margin, consistent with real products, no issue.\n\n**Problems:** None with the mechanism itself. Two practical failure points worth designing for (not modelling changes, just noting): pivot bolt should be a proper bolt + washers + locknut (loosens with repeated folding otherwise), and canvas attachment at the four top tips (sewn sleeve over the tip, not just a staple) is the usual wear point on cheap versions.\n\n**Questions:**\n1. Output type — a visual 3D model/render (e.g. OpenSCAD or a Three.js viewer you can rotate in-browser), a 3D-printable version, or exact engineering CAD? **Default: visual OpenSCAD model** (parametric, easy to check dimensions, can still export to STL/image if you want it later).\n2. Seat width (frame separation, front-view dimension not in your sketch): **default 30 cm.**\n3. Target seat height: **default 28 cm** (sets the leg angle and canvas length as derived above) — tell me if you had a different height in mind.\n\n**Next:** Once you confirm the format and the two dimensions (or accept the defaults), I'll build the parametric model: two mirrored X-frames on a shared pivot axle, straight dowel legs, and a canvas strap spanning the four top tips, matching the numbers above."
+              },
+              {
+                "name": "no-model-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-praise",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "verdict",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "**Verdict:** ✅ works as a mechanism — this is the standard X-frame/scissor camp-stool construction. But a side view alone isn't a buildable object: an X made of two flat legs has no width and would tip over sideways. I need to add a hidden second X-frame plus a few dimensions before modelling.\n\n**Understanding:** You want a 3D model of a folding camp stool: X-legs, one pivot bolt, canvas seat strap, legs ~45 cm (known). Everything else (width, pivot position, seat height, output format) is not shown in a side view, so I've assumed defaults below.\n\n**How it works:**\n- Two legs cross and pivot on one bolt — a scissor mechanism. A stool needs a footprint in *two* directions, so there must be a second, identical X-frame set apart by the seat width, joined at the pivot (I'll use one rod/axle through both frames so it still reads as \"one bolt\" from the side) — this matches how real canvas camp stools are built.\n- The canvas isn't just decorative: it's the tension member. Sitting down pulls the top ends together; the legs resist as compression struts to the ground; the pivot bolt carries the shear between the two legs. If the canvas is too long or stretches, the X keeps opening and the stool sinks/collapses — the strap length *sets* the seat height and foot stance, it doesn't just span a fixed gap.\n- By symmetry (pivot at the midpoint of each leg), the top spread (canvas length) always equals the foot spread — same formula, so the footprint under you is as wide as the seat. That's why these stools look proportioned the way they do.\n\n**Numbers** (45 cm leg, pivot at midpoint, target seat height 28 cm — typical for this stool type, all else known/derived):\n- Leg angle from horizontal: α ≈ 38.5° (derived, sinα = 28/45)\n- Pivot height above ground: ≈ 14 cm (derived)\n- Foot spread (fore-aft footprint): ≈ 35 cm (derived, = 45 cos α)\n- Canvas strap length: ≈ 35 cm (derived, equals foot spread)\n- Seat width (frame separation): 30 cm — **assumed**, not shown in the sketch\n- Leg diameter: 18 mm dowel — **assumed**, typical for this product\n- Buckling check: Pcr ≈ 4000 N per leg (wood, E≈10 GPa) vs. ≈ 400–800 N seated load per leg — ~5–10× margin, consistent with real products, no issue.\n\n**Problems:** None with the mechanism itself. Two practical failure points worth designing for (not modelling changes, just noting): pivot bolt should be a proper bolt + washers + locknut (loosens with repeated folding otherwise), and canvas attachment at the four top tips (sewn sleeve over the tip, not just a staple) is the usual wear point on cheap versions.\n\n**Questions:**\n1. Output type — a visual 3D model/render (e.g. OpenSCAD or a Three.js viewer you can rotate in-browser), a 3D-printable version, or exact engineering CAD? **Default: visual OpenSCAD model** (parametric, easy to check dimensions, can still export to STL/image if you want it later).\n2. Seat width (frame separation, front-view dimension not in your sketch): **default 30 cm.**\n3. Target seat height: **default 28 cm** (sets the leg angle and canvas length as derived above) — tell me if you had a different height in mind.\n\n**Next:** Once you confirm the format and the two dimensions (or accept the defaults), I'll build the parametric model: two mirrored X-frames on a shared pivot axle, straight dowel legs, and a canvas strap spanning the four top tips, matching the numbers above."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

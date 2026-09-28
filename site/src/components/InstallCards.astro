@@ -1,0 +1,115 @@
+---
+import { url } from '../lib/site';
+
+const platforms = [
+	{
+		name: 'Claude Code',
+		detail: 'CLI and the Claude desktop app (Code tab)',
+		steps: ['/plugin marketplace add MichaelCodeToLimit/scripter', '/plugin install scripter@scripter'],
+		code: true,
+		href: url('start/install/#claude-code'),
+	},
+	{
+		name: 'claude.ai',
+		detail: 'Website, desktop and mobile apps',
+		steps: ['Download scripter.zip', 'Customize → Skills → upload it'],
+		href: url('start/install/#claudeai'),
+	},
+	{
+		name: 'ChatGPT',
+		detail: 'Skill upload or a Custom GPT',
+		steps: ['Business, Enterprise, Edu: upload the zip', 'Other paid plans: make a Custom GPT'],
+		href: url('start/install/#chatgpt'),
+	},
+];
+---
+
+<ul class="install not-content">
+	{
+		platforms.map((p) => (
+			<li>
+				<a href={p.href}>
+					<span class="name">{p.name}</span>
+					<span class="detail">{p.detail}</span>
+					<span class={p.code ? 'steps code' : 'steps'}>
+						{p.steps.map((s) => (
+							<span>{s}</span>
+						))}
+					</span>
+					<span class="more">Install guide →</span>
+				</a>
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	.install {
+		list-style: none;
+		margin: 2rem 0 0;
+		padding: 0;
+		display: grid;
+		gap: 0.75rem;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+	}
+
+	li {
+		margin: 0;
+	}
+
+	a {
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 1.1rem 1.2rem;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 0.75rem;
+		background: var(--sc-sheet);
+		color: inherit;
+		text-decoration: none;
+		transition: border-color 0.15s;
+	}
+
+	a:hover,
+	a:focus-visible {
+		border-color: var(--sl-color-accent);
+	}
+
+	.name {
+		font-size: var(--sl-text-lg);
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.detail {
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-3);
+	}
+
+	.steps {
+		display: grid;
+		gap: 0.3rem;
+		margin-top: 0.25rem;
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-2);
+	}
+
+	.steps.code span {
+		font-family: var(--__sl-font-mono);
+		font-size: var(--sl-text-xs);
+		padding: 0.3rem 0.5rem;
+		border-radius: 0.3rem;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-white);
+		overflow-wrap: anywhere;
+	}
+
+	.more {
+		margin-top: auto;
+		padding-top: 0.5rem;
+		font-size: var(--sl-text-sm);
+		font-weight: 600;
+		color: var(--sl-color-text-accent);
+	}
+</style>

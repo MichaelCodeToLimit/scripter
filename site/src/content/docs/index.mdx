@@ -1,0 +1,56 @@
+---
+title: Check the design before you build it
+description: A skill for Claude and ChatGPT that checks how a thing works, and whether your design is possible, buildable and the best approach, before it builds anything.
+template: splash
+editUrl: false
+hero:
+  title: Check the design before you build it.
+  tagline: Scripter makes the AI work out how a thing works, test your idea against the numbers, and wait for your OK before it makes a 3D model, a drawing or code. No praise. The words go into the design.
+  actions:
+    - text: Install
+      link: /scripter/start/install/
+      icon: right-arrow
+    - text: See an example
+      link: '#same-prompt-two-answers'
+      variant: minimal
+---
+
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import HowItWorks from '../../components/HowItWorks.astro';
+import InstallCards from '../../components/InstallCards.astro';
+import ResultsSummary from '../../components/ResultsSummary.astro';
+import VerdictScale from '../../components/VerdictScale.astro';
+
+## What it does
+
+It turns on by itself when you design, review or ask for a build: a product, a machine, a 3D model from a sketch, an app, a room. For everything else, it stays out of the way.
+
+<HowItWorks />
+
+## Same prompt, two answers
+
+Without the skill, Claude will sometimes design whatever it is given, and do the maths in a way that makes it look fine. With it, Claude checks the numbers first.
+
+<BeforeAfter />
+
+## What you get back
+
+A big job gets a short report that starts with one of four verdicts. The verdict follows from the numbers, never the other way round.
+
+<VerdictScale />
+
+## Tested, including where it fails
+
+Scripter ships with a test suite: real prompts, each graded by a rubric. Here is the one full side-by-side run so far.
+
+<ResultsSummary />
+
+## Install
+
+Pick where you use Claude or ChatGPT. Each takes a couple of minutes.
+
+<InstallCards />
+
+## Limits
+
+It is a set of instructions. It guides the AI's thinking but can't force it, and the typical values in its checklists are rough. For structures, gas, mains electricity or anything under pressure, have a qualified professional check the design. [More on limits](/scripter/reference/limits/).

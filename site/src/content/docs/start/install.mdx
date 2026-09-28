@@ -1,0 +1,147 @@
+---
+title: Install
+description: Add Scripter to Claude Code, claude.ai or ChatGPT.
+---
+
+import { Aside, LinkButton, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+
+Scripter is one skill: a `SKILL.md` file and four checklists. The same files work everywhere below. Only the way you add them differs.
+
+<div class="sc-downloads">
+	<LinkButton href="/scripter/downloads/scripter.zip" icon="download" download>
+		scripter.zip
+	</LinkButton>
+	<LinkButton href="/scripter/downloads/scripter-gpt-instructions.txt" icon="document" variant="secondary" download>
+		Custom GPT instructions
+	</LinkButton>
+</div>
+
+## Claude Code
+
+For the Claude Code CLI and the Code tab of the Claude desktop app.
+
+<Steps>
+
+1. Add the marketplace:
+
+   ```text
+   /plugin marketplace add MichaelCodeToLimit/scripter
+   ```
+
+2. Install the plugin:
+
+   ```text
+   /plugin install scripter@scripter
+   ```
+
+3. Start a new session. The skill loads by itself for design work. To call it by name, type `/scripter:scripter`.
+
+</Steps>
+
+From a terminal, the same two steps are:
+
+```bash
+claude plugin marketplace add MichaelCodeToLimit/scripter
+claude plugin install scripter@scripter
+```
+
+### As a personal skill instead
+
+Unzip [`scripter.zip`](/scripter/downloads/scripter.zip) into your skills folder, so that you end up with:
+
+- macOS and Linux: `~/.claude/skills/scripter/SKILL.md`
+- Windows: `%USERPROFILE%\.claude\skills\scripter\SKILL.md`
+
+Call it by name with `/scripter`.
+
+<Aside type="caution">
+Use the plugin **or** the personal skill, not both, or the skill loads twice.
+</Aside>
+
+## claude.ai
+
+For the Claude website and apps.
+
+<Steps>
+
+1. Go to **Settings → Capabilities** and turn on **Code execution and file creation**. Skills need it.
+
+2. Download [`scripter.zip`](/scripter/downloads/scripter.zip).
+
+3. Go to **Customize → Skills** ([claude.ai/customize/skills](https://claude.ai/customize/skills)), choose to upload a skill, and pick `scripter.zip`.
+
+4. Check that the skill's toggle is on.
+
+</Steps>
+
+## ChatGPT
+
+Which way works depends on your plan.
+
+<Tabs>
+<TabItem label="Skill upload">
+
+For **Business, Enterprise, Edu and Healthcare** plans.
+
+<Steps>
+
+1. Download [`scripter.zip`](/scripter/downloads/scripter.zip).
+
+2. In ChatGPT, go to **Plugins → Skills → Create → Upload from your computer** and pick the zip.
+
+3. It turns on by itself for design work. To call it directly, type `@scripter` in a message.
+
+</Steps>
+
+If you don't see **Skills**, your plan or workspace doesn't allow custom skills. Use a Custom GPT instead.
+
+</TabItem>
+<TabItem label="Custom GPT">
+
+For **any paid plan**.
+
+<Steps>
+
+1. Download [`scripter.zip`](/scripter/downloads/scripter.zip) and unzip it. You need the four files in `scripter/references/`.
+
+2. Download the [Custom GPT instructions](/scripter/downloads/scripter-gpt-instructions.txt).
+
+3. Go to **Explore GPTs → Create** (or **My GPTs → Create a GPT**) and open the **Configure** tab.
+
+4. Fill in:
+   - **Name:** `Scripter`
+   - **Description:** `Checks how a thing works and whether your design is possible, buildable and the best approach, before building it. No praise.`
+   - **Instructions:** paste everything from the instructions file.
+
+5. Add these **conversation starters**:
+   - `Here's my idea for a new product. Will it work?`
+   - `Turn this sketch into a 3D model.`
+   - `Is this app idea possible to build?`
+   - `Review my design and tell me what's wrong with it.`
+
+6. Under **Knowledge**, upload the four files: `physical-products.md`, `sketch-to-3d.md`, `software-systems.md` and `spaces-structures.md`.
+
+7. Under **Capabilities**, turn on **Code Interpreter & Data Analysis**. It uses it for calculations. Web search is optional.
+
+8. Click **Create**. Set sharing to **Only me**, or share the link.
+
+</Steps>
+
+To use it, pick **Scripter** from the sidebar and start a chat there. Your other ChatGPT chats aren't affected.
+
+</TabItem>
+</Tabs>
+
+<Aside>
+Menu names change from time to time. If a step doesn't match what you see, check Claude's help article [How to create custom skills](https://support.claude.com/en/articles/12512198-how-to-create-custom-skills) or OpenAI's [Skills in ChatGPT](https://help.openai.com/en/articles/20001066-skills-in-chatgpt).
+</Aside>
+
+## Check that it works
+
+Start a new chat and send:
+
+```text
+A drone with a solar panel on top so it charges while flying and never has to land.
+```
+
+The answer should open with **Verdict:** ❌ and a power budget: roughly 20 W available against 150–200 W needed. If you get a cheerful drone design instead, the skill didn't load. Check the toggle, or call it by name.
