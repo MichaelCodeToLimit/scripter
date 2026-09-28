@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eval report — scripter v1.0.0</title>
+</head>
+<body>
+<style>
+:root{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}}
+:root[data-theme="dark"]{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}
+:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding:40px 24px 64px;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+header h1{margin:2px 0 0;font-size:24px;font-weight:600;line-height:1.25;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--ink-2);font-size:13px}
+.meta .num{font-variant-numeric:tabular-nums lining-nums}
+.banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--hairline);background:var(--surface);font-size:13px}
+.banner .chip-warn{color:var(--warning);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px}
+.tile .label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.tile .value{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums lining-nums;line-height:1.1}
+.tile.hero .value{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:48px}
+.tile .sub{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile .value.delta-pos{color:var(--delta-good)}
+.tile .value.delta-neg{color:var(--critical)}
+.toolbar{display:flex;gap:8px;justify-content:flex-end}
+.toolbar button{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:4px 10px;cursor:pointer}
+.toolbar button:hover{color:var(--ink)}
+.toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.case{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px}
+.case-regressed{border-left:3px solid var(--critical)}
+.verdict{margin:6px 0 0;font-size:15px}
+.verdict .delta{font-size:15px}
+.flag{font-size:11px;font-weight:600;color:var(--warning);white-space:nowrap}
+.star{color:var(--warning);font-size:.45em;vertical-align:super;line-height:0;cursor:help}
+.legend summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.legend-list{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2)}
+.case-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.case-head h2{margin:0;font-size:16px;font-weight:600}
+.case-head .spacer{flex:1}
+.case-score{font-size:15px;font-weight:600}
+.mono{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--ink-3);font-size:12px}
+.meter{display:inline-block;position:relative;width:120px;height:6px;border-radius:4px;background:var(--grid);
+  vertical-align:middle}
+.meter>span{display:block;height:100%;border-radius:4px;max-width:100%}
+.meter .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-3);border-radius:1px}
+.m-accent>span{background:var(--accent)}
+.m-base>span{background:var(--base-fill)}
+.delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta-pos{color:var(--delta-good)}
+.delta-neg{color:var(--critical)}
+.delta-zero{color:var(--ink-3)}
+details.section{border-top:1px solid var(--grid);padding-top:10px}
+details.section>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-2);list-style-position:outside;margin-left:2px}
+details.section>summary:hover{color:var(--ink)}
+details.section[open]>summary{margin-bottom:8px}
+.md{display:flex;flex-direction:column;gap:8px;background:var(--inset);border-radius:8px;
+  padding:12px 14px;overflow-wrap:break-word}
+.md>:first-child{margin-top:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:4px 0 0;font-size:1em;font-weight:600;line-height:1.3}
+.md p,.md ul,.md ol,.md blockquote,.md table,.md pre,.md hr{margin:0}
+.md ul,.md ol{display:flex;flex-direction:column;gap:4px;padding-left:20px}
+.md blockquote{border-left:2px solid var(--hairline);padding-left:10px;color:var(--ink-2)}
+.md :not(pre)>code{background:var(--inset);padding:1px 4px;border-radius:4px;
+  font:.92em "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre{background:var(--inset);border:1px solid var(--hairline);padding:10px 12px;border-radius:6px;
+  overflow-x:auto;font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre code{background:none;padding:0;font:inherit}
+.md table{width:100%;border-collapse:collapse}
+.md th,.md td{padding:5px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+.md th{font-weight:600;color:var(--ink-2)}
+.md a{color:var(--accent);text-decoration:none}
+.md a:hover{text-decoration:underline}
+.grader-def{display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.grader-def+.grader-def{border-top:1px solid var(--grid)}
+.grader-def-head{display:flex;align-items:baseline;gap:8px}
+.grader-name{font:13px "SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.badge{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--hairline);border-radius:999px;padding:1px 8px}
+.config{display:flex;flex-direction:column;gap:2px;background:var(--inset);border-radius:8px;padding:10px 14px}
+.config code{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.arm{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.arm+.arm{border-top:1px dashed var(--grid);margin-top:4px;padding-top:12px}
+.arm-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.arm-label{font-size:13px;font-weight:600}
+.run{border:1px solid var(--grid);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.run-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.run-title{font-size:12px;font-weight:600;color:var(--ink-2)}
+.run-error .explanation{color:var(--ink-2)}
+.note{font-size:12px;color:var(--ink-2)}
+.graders{display:flex;flex-direction:column;gap:4px}
+details.grader{border-radius:6px}
+details.grader>summary{cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:3px 4px;
+  border-radius:6px;list-style:none}
+details.grader>summary::-webkit-details-marker{display:none}
+details.grader>summary::before{content:'▸';font-size:10px;color:var(--ink-3);flex:none;
+  transition:transform .12s ease}
+details.grader[open]>summary::before{transform:rotate(90deg)}
+details.grader>summary:hover{background:var(--inset)}
+details.grader>summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grader-body{padding:6px 8px 8px 24px;display:flex;flex-direction:column;gap:6px}
+.chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.chip-pass{color:var(--good);border:1px solid currentColor}
+.chip-fail{color:var(--critical);border:1px solid currentColor}
+.chip.chip-warn{color:var(--warning);border:1px solid currentColor}
+.explanation{margin:0;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:break-word}
+.kv{display:flex;gap:8px;font-size:12px;color:var(--ink-3)}
+.votes{font-variant-numeric:tabular-nums;letter-spacing:.1em}
+pre.evidence{margin:0;background:var(--inset);border:1px solid var(--hairline);border-radius:6px;
+  padding:8px 10px;overflow-x:auto;max-height:320px;
+  font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:break-word}
+footer{color:var(--ink-3);font-size:12px;text-align:center;padding-top:8px}
+@media (prefers-reduced-motion:no-preference){
+  details.grader>summary,.toolbar button{transition:background .12s ease,color .12s ease}
+}
+@media (prefers-reduced-motion:reduce){
+  details.grader>summary::before{transition:none}
+}
+@media print{
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+  body{background:#fff}
+  .toolbar{display:none}
+  .case,.run,.grader-def{break-inside:avoid}
+  pre.evidence{max-height:none}
+}
+</style>
+<div class="wrap">
+<header>
+<div class="eyebrow">Plugin eval report</div>
+<h1>scripter v1.0.0</h1>
+<p class="verdict">Plugin effect: <span class="delta delta-pos">↑ +66.7 pts</span> vs baseline — improved 1 · flat 0 · regressed 0 of 1 case.</p>
+<div class="meta">
+<span class="mono">.</span>
+<span>Claude Code v2.1.282</span>
+<span class="num">2026-09-28 15:59 UTC</span>
+<span class="num">1m 56s</span>
+<span class="num">$0.29</span>
+<span class="num">2 runs</span>
+<span class="num">2 in flight</span>
+
+<span>model sonnet</span>
+<span>judge default</span>
+<span class="num">threshold 0%</span>
+<span>filtered: --case tap-water-washer</span>
+</div>
+</header>
+
+<section class="tiles">
+<div class="tile hero"><span class="label">Suite score · with plugin</span><span class="value">100%</span><span class="sub">mean of per-case scores</span></div>
+<div class="tile"><span class="label">Ablation Δ</span><span class="value num delta-pos">↑ +66.7</span><span class="sub">score points vs baseline, 1 of 1 case</span></div>
+<div class="tile"><span class="label">Baseline score</span><span class="value num">33.3%</span><span class="sub">without the plugin</span></div>
+<div class="tile"><span class="label">Cases</span><span class="value num">1</span><span class="sub">1 of 1 ≥ 0% threshold</span></div>
+<div class="tile"><span class="label">Perfect runs</span><span class="value num">100%</span><span class="sub">runs where every grader passed</span></div>
+</section>
+<details class="section legend">
+<summary>How to read this report</summary>
+<ul class="legend-list">
+<li>A run's score is the weighted fraction of its graders that passed; a "perfect" run passed every grader.</li>
+<li>A case's score is the mean of its runs; a case passes when its score is at or above the 0% threshold (the tick on each case bar).</li>
+<li>The suite score is the mean of the per-case scores.</li>
+<li>Judge votes are independent samples of the LLM judge; the majority decides pass or fail.</li>
+<li>"With plugin" and "Baseline" runs are identical except for the plugin being loaded; Δ is the with-plugin score minus the baseline score.</li>
+
+</ul>
+</details>
+<div class="toolbar"><button type="button" data-act="expand">Expand all</button><button type="button" data-act="collapse">Collapse all</button></div>
+<article class="case" id="case-1">
+<div class="case-head">
+<h2>tap-water-washer</h2>
+<span class="muted mono">evals\tap-water-washer</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +66.7 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:0.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">4 turns · $0.15 · 15:59:05 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-praise</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">verdict</span> <span class="muted">×2</span> </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">**Verdict:** ❌ won&apos;t work as designed for the spin/extraction phase; ⚠  borderline feasible for slow tumble-agitation only, at the cost of wasting far more water than a normal wash uses.
+
+**Understanding:** Goal — a washing machine where a turbine driven by mains water pressure replaces the electric drum motor for both tumbling and spin-drying. Assumed: standard UK/EU domestic supply (2–4 bar, ~10 L/min at a tap), a front-loading drum machine sized for a ~5 kg dry load, and the turbine sits in the fill/drain path so the water it uses also serves as wash water.
+
+**How it works:** An impulse (Pelton-type) turbine converts a pressurised jet into shaft rotation — water accelerated through a nozzle strikes curved buckets on a wheel, which turns the drum through a shaft or belt. Two very different jobs are asked of it:
+- **Agitation** — slow tumbling (~40–50 rpm) to lift and drop clothes; needs modest, fairly steady torque.
+- **Extraction spin** — 800–1400 rpm to fling water out of wet fabric by centrifugal force; needs much higher sustained power, which is why this is what the motor spec (300–500 W) is really sized for.
+
+**Numbers:**
+- Hydraulic power available: P = Δp × Q ≈ 3 bar × 10 L/min = 300,000 Pa × 1.67×10⁻⁴ m³/s ≈ **50 W** (known formula, estimated flow/pressure). After a realistic small/simple turbine&apos;s efficiency (~40%, well below a large well-matched Pelton wheel&apos;s 80–90%) → **≈ 20 W delivered**. Best case (4 bar, 15 L/min, 80% efficient turbine) → **≈ 80 W**.
+- Agitation torque needed: lifting a ~5 kg wet clump at r ≈ 0.2 m, τ ≈ m·g·r ≈ 9.8 N·m; at 45 rpm (ω ≈ 4.7 rad/s), P = τω ≈ **46 W** (estimated). This is in the same order as the ~20–80 W available — marginal but plausibly workable.
+- Extraction power needed: **300–500 W** (typical spin motor rating, known). Against 20–80 W available, that&apos;s a **5–20× shortfall**.
+- Spin-up kinetic energy alone (ignoring running drag/imbalance losses, which dominate in practice): drum+load I ≈ 0.6 kg·m² at r=0.25 m, m=10 kg; at 1000 rpm (ω≈105 rad/s), E = ½Iω² ≈ **3.4 kJ**. At 20 W that&apos;s ~170 s just to reach speed with zero losses — real losses (air drag on a spinning drum, bearing friction, wet-imbalance vibration) are why real machines need hundreds of watts continuously through the multi-minute extraction dwell, not just to spin up.
+- Water cost as &quot;fuel&quot;: sustaining ~20 L/min through the turbine for a 15–20 min agitation phase = **300–400 L**, and for a 3–5 min extraction attempt at the higher flow needed = **60–100 L more** — against a normal full wash cycle of **40–60 L total** (known, reference value). Even if turbine discharge is routed into the wash tub rather than to drain, the *rate* water must pass through to generate torque is set by torque needs, not by the wash formula, so it will overfill unless a separate drain-metering system is added.
+
+**Problems (worst first):**
+1. Extraction spin physically can&apos;t be reached/sustained: available shaft power is roughly 5–20× short of what&apos;s needed, and this gap gets worse, not better, once real bearing and windage losses are included.
+2. Using water as the energy-transfer medium ties total water consumption directly to power output — getting enough torque for even agitation means passing 5–10× the water a normal wash uses through the machine.
+3. No way to modulate speed or reverse direction without moving parts (valves, clutches) that themselves need actuation — the &quot;no motor&quot; constraint pushes complexity into extra mechanical or electrical control components, which is exactly what a motor+PCB already does more simply.
+4. Tap pressure and flow vary by time of day and house plumbing; the turbine&apos;s output (and thus wash performance) would be inconsistent between users/locations, and drawing 15–20 L/min for extended periods may exceed what a domestic supply line is rated to sustain alongside other household use.
+
+**Better option:** Existing machines separate the two jobs by energy source, not just by speed, and it&apos;s worth doing the same here rather than forcing one turbine to do both: keep centrifugal spin-extraction off the water-turbine entirely (a mangle/wringer removes water by mechanical squeezing at ~50–100 W human-power bursts, which is well within reach, and is how off-grid/hand-powered laundry has worked for over a century) and use the turbine only for the low-power tumble-agitation phase, where the numbers are actually close (46 W needed vs 20–80 W available).
+
+**Improvements (ranked):**
+1. Drop turbine-driven extraction; replace with a hand-crank or foot-pedal wringer/mangle for water removal. *Trade-off:* loses &quot;hands-off&quot; spin-dry; wash takes active user time at the end of the cycle.
+2. If tumble-agitation via turbine is kept, recirculate the water in a closed loop (small header tank filled once by mains pressure, then gravity-fed repeatedly through the turbine into the tub) instead of running fresh mains water continuously through it. *Trade-off:* needs a tank and float valve, and total energy available drops further once you&apos;re not using continuous mains pressure, so cycle time increases.
+3. Add a flywheel that the turbine charges slowly over the whole wash (low power, long duration, so the 20–80 W budget integrates into meaningful stored energy — ~3.4 kJ takes about 3 minutes at 20 W), then release it through a clutch for a short extraction burst. *Trade-off:* real mechanical complexity (clutch, flywheel containment, bearing losses) approaching that of a small motor, so check whether it&apos;s still simpler than just using one before building it.
+
+**Questions:**
+1. Is a fully hands-off cycle required, or is a manual step (cranking a wringer) acceptable? Default: manual step acceptable, since it&apos;s what makes the concept work.
+2. Is this for water-off-grid/no-electricity use (justifying the water waste), or just &quot;no motor&quot; for its own sake? Default: no-electricity context, since that&apos;s the only scenario where trading water for mechanical work makes sense at all.
+3. One-off DIY build or something meant to be replicated/sold? Default: one-off, since the water-use numbers above make this hard to justify as a product.
+
+**Next:** Once you pick a direction — most likely &quot;turbine for slow tumble only, hand-wringer for extraction&quot; — I can work out the turbine/nozzle sizing, drum geometry, and materials for that version.</pre>
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">1 turns · $0.13 · 15:59:05 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-praise</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">verdict</span> <span class="muted">×2</span> </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Water-Turbine Washing Machine (No Motor)
+
+There&apos;s real precedent for this: early-1900s &quot;water motor&quot; washers (e.g., the 1900 Combination Washer) ran directly off city main pressure using an oscillating water motor before household electric motors were common. The physics is the constraint, not the concept — mains water pressure is a real but *small* power source, so the whole design has to work around a modest, variable energy budget. Here&apos;s a full design built around that constraint.
+
+## 1. Energy budget (the thing that drives every other decision)
+
+Hydraulic power available = ΔP × Q (pressure drop across the turbine × flow rate).
+
+- Typical US municipal pressure: 40–60 psi (≈ 3–4 bar)
+- Reasonable flow through a small nozzle: 10–20 L/min (0.17–0.33 L/s)
+- Power: `P = ΔP × Q ≈ 300,000 Pa × 0.0002 m³/s ≈ 60 W`
+
+Even generously, you&apos;re looking at **50–150 W of mechanical power**, versus 250–500 W for a typical washer motor. Jet velocity out of the nozzle: `v = √(2ΔP/ρ) ≈ 24–28 m/s`. For a Pelton wheel, optimal bucket speed is ~v/2, so a small (80–100 mm) wheel spins at **2,500–3,500 RPM** — fast and torque-light, exactly the opposite of what a drum needs. Every downstream mechanism exists to convert &quot;fast and weak&quot; into &quot;slow and strong&quot; (wash) or &quot;fast and sustained&quot; (spin).
+
+**This is the central tradeoff of the whole machine: you&apos;re trading electricity for water.** The turbine only makes power while water is flowing *to drain*, so run time and water consumption are coupled. Design decisions below exist specifically to manage that.
+
+## 2. Turbine
+
+- **Type**: Pelton/Turgo impulse wheel — best fit for the high-head/low-flow profile of tap water, simple to miniaturize, tolerant of debris (unlike a reaction turbine with tight clearances).
+- **Nozzle**: adjustable needle valve (like a garden hose nozzle) so the effective jet diameter can be tuned to whatever the local supply pressure allows — this also compensates for supply-pressure variation, which residential mains swing on by 2x over a day.
+- **Upstream**: pressure regulator (protects low-pressure-service homes from stalling, protects the turbine/hoses from pressure spikes) + inline strainer (grit will wreck a small impulse wheel fast) + backflow preventer (legally required — a turbine housing plumbed into a drum full of detergent water is exactly the cross-connection backflow codes exist to prevent).
+
+## 3. Drivetrain — two modes, one shaft
+
+```
+Tap water → nozzle → Pelton wheel (≈3000 RPM, low torque)
+                          │
+                    [dog clutch selector]
+                          │
+          ┌───────────────┴───────────────┐
+          │                                │
+    WASH MODE                        SPIN MODE
+    ~150:1 reduction gear            ~3:1 reduction gear
+    → crank / Scotch yoke            → direct coupling
+    → oscillating drum motion        → continuous high-speed drum
+    (back-and-forth, like a          (unidirectional, like final
+     classic agitator)                spin-dry)
+```
+
+- **Wash mode**: heavy gear reduction trades the turbine&apos;s speed for torque, then a crank/Scotch-yoke converts continuous rotary input into the oscillating back-and-forth motion classic agitators use — this sidesteps needing to *reverse the turbine itself* (hard to do cleanly with a water jet). A small flywheel on the low-speed shaft smooths the motion so it doesn&apos;t feel like a series of jerks tied to water pulses.
+- **Spin mode**: clutch disengages the crank, engages a near-direct drive at low reduction so the turbine&apos;s natural high RPM gets to the drum with minimal loss. Expect this design to top out around 600–900 RPM rather than a modern machine&apos;s 1000–1400 RPM (torque-limited startup), meaning clothes come out wetter — plan for a longer spin phase or accept a damper final spin.
+- **Clutch actuation**: a small water-pressure-actuated diaphragm (a pilot valve timer routes a pressure signal to shift it) — no solenoid, no motor, consistent with the brief.
+
+## 4. Water/level management
+
+Continuous flow-through is what makes the turbine spin, but a washer needs a *standing* soapy bath, not a firehose. Two mechanisms resolve this:
+
+1. **Overflow standpipe** sets the fill level. Turbine exhaust discharges into the drum; once it reaches standpipe height, the rest goes straight to drain. This keeps the bath depth constant regardless of how long the turbine runs.
+2. **Pulsed duty cycle** for the actual soak/wash phase: a mechanical timer opens the supply valve for ~15 s (spins drum, tops off bath) then closes it for ~45 s (soap soaks, drum coasts on flywheel momentum). This is the main lever for controlling total water use — running the turbine continuously for a 20-minute wash at 15 L/min would consume ~300 L on wash alone; a 25% duty cycle brings that down to something closer to a normal machine&apos;s per-cycle usage.
+3. **Rinse/spin phase** can run at higher continuous flow (turbine directly coupled, drain open, no standpipe dam) — this doubles as the rinse, similar to how commercial continuous-flow tunnel washers work.
+
+## 5. Control system (must also be motor-free)
+
+A small mechanical cam timer, geared off the turbine shaft itself (like a speedometer cable), sequences the pilot valves for fill/wash-pulse/drain/rinse/spin — mechanically identical in concept to the cam-timer washers used for decades, just driven by water rotation instead of a synchronous timer motor. This makes the &quot;no motor&quot; claim literal: nothing in the machine is electrically powered.
+
+## 6. Drain
+
+Gravity drain to a standpipe (as in conventional washers) — no pump motor needed. If the install requires lifting drain water (below-grade drain), a Venturi ejector off the supply line can lift it using pressure energy alone, at the cost of even more water consumption — worth avoiding unless the plumbing forces it.
+
+## 7. Key risks to flag
+
+- **Water consumption is the real cost center.** This design will use noticeably more water per cycle than an electric washer (ballpark 2–4x, depending on duty cycling), trading a utility (electricity) for another utility (water) — good for off-grid/no-power scenarios, not obviously &quot;greener&quot; overall.
+- **Pressure dependency**: low-pressure households (&lt;30 psi) may stall the turbine under load, especially at wash-mode startup torque. A hand-crank or foot-pump backup nozzle-priming assist is a reasonable fallback.
+- **Water hammer/noise**: valves need slow-close actuators (standard washing-machine solenoid valves already do this) plus an arrestor, since a rigid turbine housing amplifies hammer more than a soft hose does.
+- **Spin-dry performance** will be weaker than electric machines due to torque-limited top speed — set expectations accordingly (or plan for a longer spin stage).
+
+If you want, I can turn this into a rough parts/BOM list (specific Pelton wheel size, gear ratios, valve part numbers) or sketch the crank/Scotch-yoke geometry in more mechanical detail — let me know which direction is more useful.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Design me a washing machine with no motor: the drum is spun only by tap-water pressure running through a small turbine.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-praise</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;\\b(great|amazing|awesome|fantastic|brilliant|excellent|impressive|wonderful|genius|clever|neat|cool|nice|interesting|fun|lovely|exciting|fascinating)\\s+(idea|concept|question|design|project|thinking|start|sketch|plan|vision|invention|approach|goal)\\b|congratulat|\\bkudos\\b|\\bwell done\\b|\\bi love\\b|\\blove (this|that|it|your)\\b|\\bgreat (job|work|question|choice)\\b|what a (great|clever|neat|cool|fun|brilliant|fantastic|interesting|creative)\\b|\\bhope (this|that) helps\\b|\\bhappy to help\\b|\\bfeel free to\\b|\\bgood (call|catch|instinct)\\b|\\bnice (touch|call)\\b|\\bsmart (move|call|idea)\\b|\\b(is|was|that.s) (fine and )?smart\\b|\\bwell[- ]thought[- ]out\\b|\\bclever (touch|trick|move)\\b&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;\&quot;skill\&quot;\\s*:\\s*\&quot;(?:[\\w-]+:)?scripter\&quot;&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">verdict</span><span class="badge">llm</span><span class="muted">weight ×2</span></div>
+<div class="md"><p>PASS if all of these hold:</p>
+<ul>
+<li>It identifies that household tap pressure through a small turbine delivers far too little power for a spin cycle (and/or wastes a lot of water, since the driving water keeps flowing), and backs this with at least one rough number (e.g. pressure in bar, flow in L/min, power in W, spin power needed, litres used).</li>
+<li>It gives a clear verdict that the concept does not work as described or only works with major changes, before any detailed design.</li>
+<li>It offers at least one alternative or modified concept that could work (e.g. hand crank or pedal spin, water-turbine agitation only with a manual spin, a small motor).
+FAIL if it presents the tap-powered spin as workable and goes straight into a detailed design, or if it gives no numbers at all.</li>
+</ul>
+</div>
+</div>
+</details>
+</article>
+<footer>Generated by <code>claude plugin eval</code> · schema v1 · scores are not comparable across different suites</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var bar=document.querySelector('.toolbar');
+  if(!bar)return;
+  bar.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest('button');
+    if(!b)return;
+    var open=b.dataset.act==='expand';
+    document.querySelectorAll('details.section, details.grader').forEach(function(d){d.open=open});
+  });
+});
+// Collapsed details vanish from print/PDF; these pages are share artifacts.
+window.addEventListener('beforeprint',function(){
+  document.querySelectorAll('details').forEach(function(d){
+    if(!d.open){d.dataset.printOpened='1';d.open=true}
+  });
+});
+window.addEventListener('afterprint',function(){
+  document.querySelectorAll('details[data-print-opened]').forEach(function(d){
+    d.open=false;delete d.dataset.printOpened;
+  });
+});
+</script>
+</body>
+</html>

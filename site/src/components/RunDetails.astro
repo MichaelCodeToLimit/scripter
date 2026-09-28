@@ -1,15 +1,25 @@
 ---
 // One-paragraph description of the eval run shown on the site, from src/data/results.json.
 import results from '../data/results.json';
-import { formatDate, modelName } from '../lib/site';
+import { caseLabel, formatDate, modelName } from '../lib/site';
 
 const runs = results.runsPerArm === 1 ? 'One run' : `${results.runsPerArm} runs`;
 const enough =
 	results.runsPerArm === 1
 		? 'That is enough to show large differences, not small ones: a single run can pass or fail by chance.'
 		: 'Small differences can still be noise.';
+const reruns = results.reruns as { case: string; run: string }[];
+const numbers = ['One', 'Two', 'Three', 'Four', 'Five'];
+const howMany = reruns.length === 1 ? 'One case was' : `${numbers[reruns.length - 1] ?? reruns.length} cases were`;
+const because = results.rerunReason ? `, because ${results.rerunReason}` : '';
+const rerunText =
+	reruns.length === 0
+		? ''
+		: ` ${howMany} re-run separately with the same settings${because}: ${reruns
+				.map((r) => `${caseLabel(r.case)} (${r.run})`)
+				.join('; ')}.`;
 ---
 
 {runs} per case per arm, with {modelName(results.model)}, on {formatDate(results.date)}, from run{' '}
-<code>{results.run}</code>. {enough}
+<code>{results.run}</code>.{rerunText} {enough}
 {results.note && ` ${results.note}`}

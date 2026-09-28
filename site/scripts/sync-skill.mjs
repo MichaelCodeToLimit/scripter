@@ -17,12 +17,16 @@ const skillDir = join(repo, 'scripter', 'skills', 'scripter');
 const repoUrl = 'https://github.com/MichaelCodeToLimit/scripter/blob/main';
 const editUrl = (relPath) => `https://github.com/MichaelCodeToLimit/scripter/edit/main/${relPath}`;
 
-// The with/without run shown on the Test results page. Change this when a newer
-// full with/without run exists.
-const RESULTS_RUN = '03-full-with-without';
+// The with/without run shown on the Test results page (a folder in scripter/evals/results).
+// Change this when a newer full with/without run exists.
+const RESULTS_RUN = '06-full-with-without';
+// Optional re-runs of single cases, for when a case in RESULTS_RUN was interrupted.
+// Each replaces that case's result from RESULTS_RUN.
+const RESULTS_RERUNS = ['06-retry-tap-water-washer', '06-retry-vague-typo-chair'];
+// Why those cases were re-run, completing "re-run separately with the same settings, because ...".
+const RESULTS_RERUN_REASON = 'a usage limit stopped their grading in the main run';
 // Optional sentence shown with the results, for anything a reader should know about this run.
-const RESULTS_NOTE =
-	'This run tested an earlier version of the skill (then called design-sense), and the graders have been tightened since.';
+const RESULTS_NOTE = null;
 
 function write(path, text) {
 	mkdirSync(dirname(path), { recursive: true });
@@ -89,13 +93,37 @@ for (const file of readdirSync(join(skillDir, 'references')).filter((f) => f.end
 
 // 3. Eval results: keep only what the site shows.
 {
-	const src = join(repo, 'scripter', 'evals', 'results', RESULTS_RUN, 'aggregate-result.json');
-	const run = JSON.parse(readFileSync(src, 'utf8'));
+	const load = (name) =>
+		JSON.parse(readFileSync(join(repo, 'scripter', 'evals', 'results', name, 'aggregate-result.json'), 'utf8'));
+	const run = load(RESULTS_RUN);
+	const caseRun = new Map(run.cases.map((c) => [c.name, { c, from: RESULTS_RUN }]));
+	for (const name of RESULTS_RERUNS) {
+		for (const c of load(name).cases) {
+			if (!caseRun.has(c.name)) throw new Error(`re-run ${name} has case ${c.name}, which isn't in ${RESULTS_RUN}`);
+			caseRun.set(c.name, { c, from: name });
+		}
+	}
+
+	// Refuse to publish a case whose agent run failed or whose grader couldn't run (for
+	// example a usage limit): its score would be wrong. Re-run it and add it to RESULTS_RERUNS.
+	for (const { c, from } of caseRun.values()) {
+		for (const [arm, runs] of Object.entries(c.arms)) {
+			for (const x of runs) {
+				const threw = x.graders.filter((g) => /grader threw/.test(g.explanation ?? '')).map((g) => g.name);
+				if (x.error || threw.length) {
+					throw new Error(
+						`${from}: case ${c.name} (${arm}) is invalid: ${x.error ?? `grader ${threw.join(', ')} threw`}. Re-run it and list the run in RESULTS_RERUNS.`,
+					);
+				}
+			}
+		}
+	}
+
 	// Names of the scored graders that failed in any run of an arm.
 	const failed = (runs) => [
 		...new Set(runs.flatMap((x) => x.graders.filter((g) => g.scored !== false && !g.passed).map((g) => g.name))),
 	];
-	const cases = run.cases.map((c) => ({
+	const cases = [...caseRun.values()].map(({ c }) => ({
 		name: c.name,
 		prompt: c.promptMarkdown.trim(),
 		with: { score: c.aggregates.score, passed: c.aggregates.passRate === 1, failed: failed(c.arms.with) },
@@ -110,6 +138,8 @@ for (const file of readdirSync(join(skillDir, 'references')).filter((f) => f.end
 		JSON.stringify(
 			{
 				run: RESULTS_RUN,
+				reruns: [...caseRun.values()].filter((x) => x.from !== RESULTS_RUN).map((x) => ({ case: x.c.name, run: x.from })),
+				rerunReason: RESULTS_RERUN_REASON,
 				note: RESULTS_NOTE,
 				date: run.startedAt.slice(0, 10),
 				model: run.suite.modelOverride,
