@@ -20,8 +20,9 @@ const editUrl = (relPath) => `https://github.com/MichaelCodeToLimit/scripter/edi
 // The with/without run shown on the Test results page. Change this when a newer
 // full with/without run exists.
 const RESULTS_RUN = '03-full-with-without';
+// Optional sentence shown with the results, for anything a reader should know about this run.
 const RESULTS_NOTE =
-	'Earlier version of the skill (then called design-sense). The graders have been tightened since this run.';
+	'This run tested an earlier version of the skill (then called design-sense), and the graders have been tightened since.';
 
 function write(path, text) {
 	mkdirSync(dirname(path), { recursive: true });

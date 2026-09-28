@@ -1,15 +1,9 @@
 ---
 // Every case from the with/without eval run, generated from src/data/results.json.
 import results from '../data/results.json';
-import { caseLabel } from '../lib/site';
+import { caseLabel, graderLabel } from '../lib/site';
 
-const graderNames: Record<string, string> = {
-	verdict: 'judged verdict',
-	'no-praise': 'praise',
-	short: 'length',
-	'load-path': 'load path',
-};
-const describe = (failed: string[]) => failed.map((f) => graderNames[f] ?? f).join(', ');
+const describe = (failed: string[]) => failed.map(graderLabel).join(', ');
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 ---
 

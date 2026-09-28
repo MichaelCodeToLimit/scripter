@@ -1,0 +1,127 @@
+---
+// Groups the eval cases by outcome (fixed, made worse, failed either way, passed either way),
+// computed from src/data/results.json so the analysis always matches the run shown.
+import results from '../data/results.json';
+import { caseLabel, graderLabel } from '../lib/site';
+
+type Case = (typeof results.cases)[number];
+const failedChecks = (arm: Case['with']) => arm.failed.map(graderLabel).join(', ');
+
+const groups = [
+	{
+		title: 'Fixed by Scripter',
+		body: 'Failed without the skill, passed with it.',
+		cases: results.cases.filter((c) => c.with.passed && !c.without.passed),
+		note: (c: Case) => `without it: failed ${failedChecks(c.without)}`,
+	},
+	{
+		title: 'Made worse',
+		body: 'Passed without the skill, failed with it.',
+		cases: results.cases.filter((c) => !c.with.passed && c.without.passed),
+		note: (c: Case) => `with it: failed ${failedChecks(c.with)}`,
+	},
+	{
+		title: 'Failed either way',
+		body: 'Still open problems for the skill.',
+		cases: results.cases.filter((c) => !c.with.passed && !c.without.passed),
+		note: (c: Case) => `with it: failed ${failedChecks(c.with)}; without it: failed ${failedChecks(c.without)}`,
+	},
+].filter((g) => g.cases.length > 0);
+
+const bothPassed = results.cases.filter((c) => c.with.passed && c.without.passed);
+---
+
+<div class="breakdown not-content">
+	{
+		groups.map((g) => (
+			<section>
+				<h3>
+					{g.title} <span class="count">{g.cases.length}</span>
+				</h3>
+				<p class="body">{g.body}</p>
+				<ul>
+					{g.cases.map((c) => (
+						<li>
+							<span class="case">{caseLabel(c.name)}</span>
+							<span class="note">{g.note(c)}</span>
+						</li>
+					))}
+				</ul>
+			</section>
+		))
+	}
+	{
+		bothPassed.length > 0 && (
+			<section>
+				<h3>
+					Passed either way <span class="count">{bothPassed.length}</span>
+				</h3>
+				<p class="body">
+					Handled well without the skill too. These cases are in the suite to catch regressions: the skill must not make easy
+					cases worse. {bothPassed.map((c) => caseLabel(c.name)).join('; ')}.
+				</p>
+			</section>
+		)
+	}
+</div>
+
+<style>
+	.breakdown {
+		margin-top: 1.5rem;
+		display: grid;
+		gap: 1.5rem;
+	}
+
+	h3 {
+		margin: 0;
+		font-size: var(--sl-text-lg);
+		color: var(--sl-color-white);
+	}
+
+	.count {
+		margin-left: 0.35rem;
+		padding: 0.05rem 0.5rem;
+		border-radius: 999px;
+		font-family: var(--__sl-font-mono);
+		font-size: var(--sl-text-xs);
+		font-weight: 600;
+		vertical-align: middle;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-gray-2);
+	}
+
+	.body {
+		margin: 0.3rem 0 0;
+		font-size: var(--sl-text-sm);
+		line-height: 1.6;
+		color: var(--sl-color-gray-2);
+	}
+
+	ul {
+		list-style: none;
+		margin: 0.6rem 0 0;
+		padding: 0;
+		display: grid;
+		gap: 0.5rem;
+	}
+
+	li {
+		margin: 0;
+		padding-left: 0.8rem;
+		border-left: 2px solid var(--sl-color-hairline-light);
+	}
+
+	.case {
+		display: block;
+		font-weight: 600;
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-white);
+	}
+
+	.note {
+		display: block;
+		font-family: var(--__sl-font-mono);
+		font-size: var(--sl-text-xs);
+		color: var(--sl-color-gray-3);
+	}
+</style>

@@ -1,13 +1,15 @@
 ---
 // Headline numbers from the with/without eval run (src/data/results.json, made by sync-skill.mjs).
+// Every sentence here is computed from the data, so it stays true when the run changes.
 import results from '../data/results.json';
-import { caseLabel, formatDate, url } from '../lib/site';
+import { caseLabel, formatDate, modelName, url } from '../lib/site';
 
 const { totals, cases } = results;
 const helped = cases.filter((c) => c.with.passed && !c.without.passed).map((c) => caseLabel(c.name));
 const hurt = cases.filter((c) => !c.with.passed && c.without.passed).map((c) => caseLabel(c.name));
-const date = formatDate(results.date);
 const list = (names: string[]) => names.join('; ');
+const count = (n: number) => (n === 1 ? 'one case' : `${n} cases`);
+const runs = results.runsPerArm === 1 ? 'one run each' : `${results.runsPerArm} runs each`;
 ---
 
 <div class="results not-content">
@@ -23,17 +25,11 @@ const list = (names: string[]) => names.join('; ');
 	</div>
 	<div class="detail">
 		<p>
-			Same prompts, same model (Claude {results.model[0].toUpperCase() + results.model.slice(1)}), one run each, {date}.
-			Scripter turned {helped.length} failures into passes: {list(helped)}.
+			Same prompts, same model ({modelName(results.model)}), {runs}, {formatDate(results.date)}.
+			{helped.length > 0 && ` Scripter turned ${count(helped.length)} from fail to pass: ${list(helped)}.`}
 		</p>
-		{
-			hurt.length > 0 && (
-				<p>
-					It made {hurt.length === 1 ? 'one case' : `${hurt.length} cases`} worse: {list(hurt)}. That run tested an earlier
-					version of the skill, and the graders have been tightened since.
-				</p>
-			)
-		}
+		{hurt.length > 0 && <p>It made {count(hurt.length)} worse: {list(hurt)}.</p>}
+		{results.note && <p>{results.note}</p>}
 		<p><a href={url('reference/test-results/')}>See every case, prompt and caveat →</a></p>
 	</div>
 </div>

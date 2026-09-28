@@ -4,21 +4,26 @@ description: How Scripter was tested, the with/without results for every case, a
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+import ResultsBreakdown from '../../../components/ResultsBreakdown.astro';
 import ResultsSummary from '../../../components/ResultsSummary.astro';
 import ResultsTable from '../../../components/ResultsTable.astro';
+import RunDetails from '../../../components/RunDetails.astro';
 
-Scripter has a test suite of real prompts, each with written pass conditions. The same prompts run twice: once with the skill loaded and once without it. This page shows the one full side-by-side run so far.
+Scripter has a test suite of real prompts, each with written pass conditions. The same prompts run twice: once with the skill loaded and once without it. This page shows the latest full side-by-side run, and is rebuilt from its results file.
 
 <ResultsSummary />
 
 ## How it's graded
 
-Each case has up to four checks, stored next to its prompt in [`scripter/evals/`](https://github.com/MichaelCodeToLimit/scripter/tree/main/scripter/evals):
+Each case has a few checks, stored next to its prompt in [`scripter/evals/`](https://github.com/MichaelCodeToLimit/scripter/tree/main/scripter/evals):
 
-- **Judged verdict.** Three AI judges read the answer against a written rubric, for example: *"PASS if it identifies that household tap pressure through a small turbine delivers far too little power … and backs this with at least one rough number."* The majority vote decides.
+- **Judged verdict.** Three AI judges read the answer against a written rubric, for example: *"PASS if it identifies that household tap pressure through a small turbine delivers far too little power … and backs this with at least one rough number."* The majority vote decides. The folding-stool case also has a judged check of its load path.
 - **Praise.** A pattern check that fails the answer for phrases such as "great idea", "I love this" or "hope this helps".
-- **Length.** Cases where the right answer is short fail if the reply runs past a character limit.
-- **Skill fired.** Whether the skill actually loaded. This is reported but not scored, since it can't apply to the run without the skill.
+- **Length.** Cases where the right answer is short (a small question, a sound design, an obvious no) fail if the reply runs past a limit of 1,500–2,500 characters.
+- **Built before checking.** Cases where it must stop for your OK fail if the reply already contains 3D modelling code.
+- **Builds.** Once you have approved the design, the reply must contain the code.
+- **Stays out of the way.** The birthday message is not design work, so it fails if the skill turns on.
+- **Skill fired.** Whether the skill loaded on design prompts. This is reported but not scored, since it can't apply to the run without the skill.
 
 A case passes only if every scored check passes.
 
@@ -28,24 +33,18 @@ A case passes only if every scored check passes.
 
 ## Reading these results
 
-- **Where it helped.** Four cases flipped from fail to pass. Without the skill, Claude:
-  - designed the tap-water washing machine as if it worked;
-  - turned a one-view sketch of a folding stool straight into a 3D model, without listing what the sketch leaves out;
-  - accepted "I'm an engineer" and designed the tap-water machine it had earlier said wouldn't work;
-  - wrote the phone-stand code the user had approved, but never checked the result against the confirmed dimensions.
-- **Where it got worse.** In the bookshelf review, Scripter's verdict was right, but the answer ran past the length limit for a design that was already sound. A sound design should get a short answer.
-- **Where both passed.** Several cases, such as the perpetual-motion wheel, were already handled well without the skill. They are in the suite to catch regressions: the skill must not make easy cases worse.
+<ResultsBreakdown />
 
 <Aside type="caution" title="Caveats">
-One run per case per arm, with Claude Sonnet, on 27 Sep 2026. That is enough to show large differences, not small ones. The run tested an earlier version of the skill (then called *design-sense*), and the graders have been made stricter since. Later runs with stricter graders are in [`scripter/evals/results/`](https://github.com/MichaelCodeToLimit/scripter/tree/main/scripter/evals/results), but none is yet a full with/without comparison.
+<RunDetails /> Every run, including partial ones, is in [`scripter/evals/results/`](https://github.com/MichaelCodeToLimit/scripter/tree/main/scripter/evals/results).
 </Aside>
 
 ## Run it yourself
 
-The suite uses `claude plugin eval`. From the `scripter` folder:
+The suite uses `claude plugin eval`. From the repo root:
 
 ```bash
-claude plugin eval . --runs 1 --model sonnet --no-publish
+claude plugin eval ./scripter --ablation with-without --model sonnet --runs 1 --no-publish
 ```
 
-It uses your Claude plan's allowance. See [Customize and rebuild](/scripter/reference/customize/).
+It uses your Claude plan's allowance. To show a new run on this site, set `RESULTS_RUN` in `site/scripts/sync-skill.mjs` to its results folder and push. See [Customize and rebuild](/scripter/reference/customize/).

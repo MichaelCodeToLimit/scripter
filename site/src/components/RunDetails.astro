@@ -1,0 +1,15 @@
+---
+// One-paragraph description of the eval run shown on the site, from src/data/results.json.
+import results from '../data/results.json';
+import { formatDate, modelName } from '../lib/site';
+
+const runs = results.runsPerArm === 1 ? 'One run' : `${results.runsPerArm} runs`;
+const enough =
+	results.runsPerArm === 1
+		? 'That is enough to show large differences, not small ones: a single run can pass or fail by chance.'
+		: 'Small differences can still be noise.';
+---
+
+{runs} per case per arm, with {modelName(results.model)}, on {formatDate(results.date)}, from run{' '}
+<code>{results.run}</code>. {enough}
+{results.note && ` ${results.note}`}

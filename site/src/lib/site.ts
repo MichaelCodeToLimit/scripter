@@ -16,7 +16,11 @@ export function humanize(name: string): string {
 const caseLabels: Record<string, string> = {
 	'approved-build': 'Approved phone-stand build',
 	'birthday-message': 'Birthday message (not design)',
+	'change-recheck': 'Change of plan: PLA drum, twice the size',
 	'folding-stool-sketch': 'Folding-stool sketch to 3D',
+	'hurry-pressure': '"No questions, I’m in a hurry"',
+	'imperial-shelf': 'Imperial 2x4 shelf (small question)',
+	'led-tent-battery': 'LED tent light on 4 AA batteries',
 	'loft-platform-safety': 'Garage loft safety',
 	'magnet-perpetual-motion': 'Magnet perpetual-motion wheel',
 	'offline-sync-todo': 'Offline sync to-do app',
@@ -36,4 +40,24 @@ export function formatDate(iso: string): string {
 	const [y, m, d] = iso.split('-').map(Number);
 	const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 	return `${d} ${months[m - 1]} ${y}`;
+}
+
+// What each grader checks, in words, for "failed: ..." notes.
+const graderLabels: Record<string, string> = {
+	verdict: 'judged verdict',
+	'load-path': 'judged load path',
+	message: 'judged message',
+	'no-praise': 'praise',
+	short: 'length',
+	'no-model-code': 'built before checking',
+	builds: 'no code',
+	'skill-not-fired': 'turned on when it shouldn’t',
+};
+export function graderLabel(name: string): string {
+	return graderLabels[name] ?? name.replace(/-/g, ' ');
+}
+
+// "sonnet" -> "Claude Sonnet"
+export function modelName(model: string): string {
+	return `Claude ${model.charAt(0).toUpperCase()}${model.slice(1)}`;
 }
